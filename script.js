@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------------------
   // Base API URL
   // ---------------------------
-  const API_BASE = "https://your-render-app.onrender.com"; // 🔥 Replace with your Render URL
+  const API_BASE = "https://acashmarketplace-backend.onrender.com"; // 🔥 Replace with your Render URL
 
   // ---------------------------
   // Element references
