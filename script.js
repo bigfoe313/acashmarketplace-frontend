@@ -1,4 +1,4 @@
-// script.js — full, DOM-ready, Render-compatible
+// script.js — full, DOM-ready, Render-compatible, image proxy added
 document.addEventListener("DOMContentLoaded", () => {
   // ---------------------------
   // Base API URL
@@ -20,7 +20,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!categoryDropdown) console.warn("Warning: #categoryDropdown not found in DOM");
 
   // ---------------------------
-  // Category tree
+  // Proxy helper for images
+  // ---------------------------
+  function proxyImage(url) {
+    if (!url) return "https://via.placeholder.com/150";
+    return `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}`;
+  }
+
+  // ---------------------------
+  // Category tree & dropdown
   // ---------------------------
   const categoryTree = [
     { name: "Consumer Electronics", children: ["Mobile Phones","Earphones & Headphones","Smart Watch","Tablets"] },
@@ -218,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const price = parseFloat(product.price || "0");
       const shippingFee = product.shipping_fee && product.shipping_fee !== "N/A" ? parseFloat(product.shipping_fee) : 0;
       const total = (price + shippingFee).toFixed(2);
-      const image = product.image || "https://via.placeholder.com/150";
+      const image = proxyImage(product.image); // ✅ proxy image
 
       const min = product.min_delivery_days;
       const max = product.max_delivery_days;
@@ -446,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
           carouselItem.innerHTML = `
             <div class="carousel-card" style="text-align:center;">
               <a href="${productUrl}" style="color:inherit;text-decoration:none;">
-                <img src="${product.image || 'https://via.placeholder.com/150'}"
+                <img src="${proxyImage(product.image || 'https://via.placeholder.com/150')}"
                      alt="${product.title || ''}"
                      style="max-width:100%;border-radius:6px;" />
                 <h3 style="margin:8px 0 4px;">${product.title || ""}</h3>
