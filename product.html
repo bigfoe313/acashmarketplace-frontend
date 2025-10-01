@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Detail</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .product-card {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.12);
+      display: inline-block;
+      max-width: 400px;
+      text-align: center;
+    }
+    .product-card img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .price-info p {
+      margin: 4px 0;
+    }
+    .buy-now-btn {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .buy-now-btn:hover {
+      background-color: #005bb5;
+    }
+    .metamask-btn {
+      display: block;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      transition: background-color 0.2s ease;
+    }
+    .metamask-btn:hover {
+      background-color: #218838;
+    }
+    .mm-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .mm-line1 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; color: white; }
+    .mm-price-row { display: flex; align-items: center; gap: 6px; }
+    .mm-line2 { font-size: 1rem; font-weight: bold; color: white; }
+    .metamask-logo { width: 20px; height: 20px; }
+  </style>
+</head>
+<body>
+
+<div id="productContainer"></div>
+
+<script>
+  // Parse product data from query string
+  const urlParams = new URLSearchParams(window.location.search);
+  const product = {
+    id: urlParams.get("id"),
+    title: decodeURIComponent(urlParams.get("title") || ""),
+    price: parseFloat(urlParams.get("price") || 0),
+    shipping: parseFloat(urlParams.get("shipping") || 0),
+    image: decodeURIComponent(urlParams.get("image") || ""),
+    skuId: urlParams.get("skuId") || "",
+    minDelivery: urlParams.get("minDelivery") || "N/A",
+    maxDelivery: urlParams.get("maxDelivery") || "N/A"
+  };
+
+  const container = document.getElementById("productContainer");
+
+  // Compute total & discounted price
+  const total = (product.price + product.shipping).toFixed(2);
+  const discountPrice = (product.price * 0.9).toFixed(2);
+
+  let delivery;
+  if(product.minDelivery !== "N/A" && product.maxDelivery !== "N/A") delivery = `${product.minDelivery}-${product.maxDelivery} Days`;
+  else if(product.minDelivery !== "N/A") delivery = `${product.minDelivery} Days`;
+  else if(product.maxDelivery !== "N/A") delivery = `${product.maxDelivery} Days`;
+  else delivery = "N/A";
+
+  // Build Metamask URL for 10% discount
+  const metamaskUrl = `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
+    `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${product.price.toFixed(2)} A-CASH plus ${product.shipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
+    `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${product.title}) - transactionHash`)}` +
+    `&cartTitle=${encodeURIComponent(product.title)}` +
+    `&cartProductId=${encodeURIComponent(product.id)}` +
+    `&cartImage=${encodeURIComponent(product.image)}` +
+    `&span1=${encodeURIComponent(discountPrice + " A-CASH")}` +
+    `&span2=${encodeURIComponent(product.shipping.toFixed(2) + " A-CASH")}` +
+    `&span3=${encodeURIComponent(delivery)}` +
+    `&span4=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2) + " A-CASH")}` +
+    `&total=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2))}`;
+
+  container.innerHTML = `
+    <div class="product-card">
+      <img src="${product.image}" alt="${product.title}" />
+      <h3>${product.title}</h3>
+      <div class="price-info">
+        <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
+        <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
+        <p>Total: <strong>$${total}</strong></p>
+        <p>Delivery: ${delivery}</p>
+      </div>
+      <button class="buy-now-btn">Buy Now</button>
+
+      <div class="or-divider">
+        <div></div><span>OR</span><div></div>
+      </div>
+
+      <a href="${metamaskUrl}" target="_blank" class="metamask-btn">
+        <div class="mm-text">
+          <span class="mm-line1">Buy with 10% Discount</span>
+          <div class="mm-price-row">
+            <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
+            <img class="metamask-logo" src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024" alt="Metamask">
+          </div>
+        </div>
+      </a>
+    </div>
+  `;
+
+  // Buy Now button sends to Stripe
+  container.querySelector(".buy-now-btn").addEventListener("click", async () => {
+    try {
+      const response = await fetch("/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: product.title,
+          price: product.price,
+          shipping_fee: product.shipping,
+          image: product.image,
+          productId: product.id,
+          skuId: product.skuId
+        })
+      });
+      const data = await response.json();
+      if(data.url) window.open(data.url, "_blank");
+      else alert("Failed to start checkout session.");
+    } catch(err) {
+      console.error("Stripe Checkout Error:", err);
+    }
+  });
+</script>
+</body>
+</html>
