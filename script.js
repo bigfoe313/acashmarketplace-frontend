@@ -366,6 +366,7 @@ async function initCarousel() {
   const proxyImage = (url) => `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}`;
 
   try {
+    // Check cache
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       const parsed = JSON.parse(cached);
@@ -374,6 +375,7 @@ async function initCarousel() {
       }
     }
 
+    // Fetch products if not cached
     if (featuredProducts.length === 0) {
       const responses = await Promise.all(
         searchTerms.map(term =>
@@ -435,18 +437,6 @@ async function initCarousel() {
       const product = featuredProducts[index];
       if (!product) return;
 
-      const qp = new URLSearchParams({
-        id: product.id ?? "",
-        title: product.title ?? "",
-        price: product.price ?? "0",
-        shipping: product.shipping_fee ?? "0",
-        image: product.image ?? "",
-        skuId: product.sku_id ?? "",
-        minDelivery: product.min_delivery_days ?? "",
-        maxDelivery: product.max_delivery_days ?? ""
-      }).toString();
-
-      const productUrl = `product.html?${qp}`;
       const deliveryText = (product.min_delivery_days && product.max_delivery_days)
         ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
         : (product.min_delivery_days || product.max_delivery_days || "N/A");
@@ -455,26 +445,73 @@ async function initCarousel() {
       carouselItem.style.opacity = 0;
 
       setTimeout(() => {
+        const proxiedImage = proxyImage(product.image || "https://via.placeholder.com/150");
+
         carouselItem.innerHTML = `
           <div class="carousel-card" style="text-align:center;">
-            <a href="${productUrl}" style="color:inherit;text-decoration:none;">
-              <img src="${proxyImage(product.image || 'https://via.placeholder.com/150')}"
-                   alt="${product.title || ''}"
-                   style="max-width:100%;border-radius:6px;" />
-              <h3 style="margin:8px 0 4px;">${product.title || ""}</h3>
-              <p style="margin:0 0 6px;"><strong>$${parseFloat(product.price || 0).toFixed(2)}</strong></p>
-              <p style="margin:0 6px 8px;color:#444;font-size:0.9rem;">Delivery: ${deliveryText}</p>
-            </a>
+            <img src="${proxiedImage}" alt="${product.title || ''}"
+                 style="max-width:100%;border-radius:6px;cursor:pointer;" />
+            <h3 style="margin:8px 0 4px;cursor:pointer;">${product.title || ""}</h3>
+            <p style="margin:0 0 6px;"><strong>$${parseFloat(product.price || 0).toFixed(2)}</strong></p>
+            <p style="margin:0 6px 8px;color:#444;font-size:0.9rem;">Delivery: ${deliveryText}</p>
           </div>
         `;
         carouselItem.style.opacity = 1;
+
+        // --- Click handlers for checkout ---
+        const img = carouselItem.querySelector("img");
+        const titleEl = carouselItem.querySelector("h3");
+
+        async function handleCheckout() {
+          try {
+            const resp = await fetch(`${API_BASE}/api/cart/add`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: product.title,
+                price: product.price,
+                shipping_fee: product.shipping_fee,
+                image: proxiedImage,
+                productId: product.id,
+                skuId: product.sku_id,
+              }),
+            });
+            const data = await resp.json();
+            if (data.url) window.open(data.url, "_blank");
+            else alert("Failed to start checkout session.");
+          } catch (err) {
+            console.error("Carousel checkout error:", err);
+          }
+        }
+
+        img.addEventListener("click", handleCheckout);
+        titleEl.addEventListener("click", handleCheckout);
       }, 400);
     }
 
-    function showPrev() { currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length; renderProduct(currentIndex); }
-    function showNext() { currentIndex = (currentIndex + 1) % featuredProducts.length; renderProduct(currentIndex); }
-    function togglePause() { isPaused = !isPaused; document.getElementById("pause-btn").textContent = isPaused ? "▶" : "❚❚"; if (isPaused) clearInterval(carouselInterval); else startCarousel(); }
-    function startCarousel() { clearInterval(carouselInterval); carouselInterval = setInterval(() => { if (!isPaused) { currentIndex = (currentIndex + 1) % featuredProducts.length; renderProduct(currentIndex); } }, 5000); }
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length;
+      renderProduct(currentIndex);
+    }
+    function showNext() {
+      currentIndex = (currentIndex + 1) % featuredProducts.length;
+      renderProduct(currentIndex);
+    }
+    function togglePause() {
+      isPaused = !isPaused;
+      document.getElementById("pause-btn").textContent = isPaused ? "▶" : "❚❚";
+      if (isPaused) clearInterval(carouselInterval);
+      else startCarousel();
+    }
+    function startCarousel() {
+      clearInterval(carouselInterval);
+      carouselInterval = setInterval(() => {
+        if (!isPaused) {
+          currentIndex = (currentIndex + 1) % featuredProducts.length;
+          renderProduct(currentIndex);
+        }
+      }, 5000);
+    }
 
     controlsWrapper.querySelector("#prev-btn").onclick = showPrev;
     controlsWrapper.querySelector("#next-btn").onclick = showNext;
