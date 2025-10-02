@@ -482,7 +482,7 @@ async function initCarousel() {
         title: product.title ?? "",
         price: product.price ?? "0",
         shipping: product.shipping_fee ?? "0",
-        image: product.skuImage ?? "",
+        image: proxyImage(product.skuImage || product.image || ""),
         skuId: product.sku_id ?? "",
         minDelivery: product.min_delivery_days ?? "",
         maxDelivery: product.max_delivery_days ?? "",
