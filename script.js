@@ -320,18 +320,44 @@ document.addEventListener("DOMContentLoaded", () => {
       card.querySelector("img").addEventListener("click", handleCheckout);
       card.querySelector("h3").addEventListener("click", handleCheckout);
 
-      // --- MetaMask Checkout ---
+      // ---------------------------
+      // MetaMask Checkout
+      // ---------------------------
       const metamaskBtn = card.querySelector(".metamask-btn");
       metamaskBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
-          const cart = await getMetaMaskCartData(product);
-          if (cart) {
-            const mmUrl = buildMetaMaskUrl(cart, delivery);
-            window.open(mmUrl, "_blank");
-          } else {
+          const cartData = await getMetaMaskCartData(product); // your existing function
+      
+          if (!cartData) {
             alert("Failed to create MetaMask cart");
+            return;
           }
+      
+          // Wrap the image URL through your backend proxy
+          const proxiedImage = `${API_BASE}/api/image-proxy?url=${encodeURIComponent(cartData.image)}`;
+      
+          // Build the cart object for MetaMask checkout
+          const cart = {
+            ...cartData,
+            image: proxiedImage, // ⚡ Important: use proxied URL
+            color: cartData.color || "Default",
+            total: cartData.total,
+            discountTotal: cartData.discountTotal,
+            price: cartData.price,
+            shipping: cartData.shipping,
+            title: cartData.title,
+            productId: cartData.productId,
+          };
+      
+          // Construct MetaMask URL
+          const mmUrl = buildMetaMaskUrl(cart, product.min_delivery_days && product.max_delivery_days
+            ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
+            : (product.min_delivery_days || product.max_delivery_days || "N/A")
+          );
+      
+          window.open(mmUrl, "_blank");
+      
         } catch (err) {
           console.error("MetaMask Checkout Error:", err);
           alert("MetaMask checkout failed.");
