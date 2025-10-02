@@ -75,18 +75,20 @@
 <div id="productContainer"></div>
 
 <script>
-  // Parse product data from query string
-  const urlParams = new URLSearchParams(window.location.search);
-  const product = {
-    id: urlParams.get("id"),
-    title: decodeURIComponent(urlParams.get("title") || ""),
-    price: parseFloat(urlParams.get("price") || 0),
-    shipping: parseFloat(urlParams.get("shipping") || 0),
-    image: decodeURIComponent(urlParams.get("image") || ""),
-    skuId: urlParams.get("skuId") || "",
-    minDelivery: urlParams.get("minDelivery") || "N/A",
-    maxDelivery: urlParams.get("maxDelivery") || "N/A"
-  };
+const API_BASE = "https://acashmarketplace-backend.onrender.com"; // same as in script.js
+
+// Parse product data from query string
+const urlParams = new URLSearchParams(window.location.search);
+const product = {
+  id: urlParams.get("id"),
+  title: decodeURIComponent(urlParams.get("title") || ""),
+  price: parseFloat(urlParams.get("price") || 0),
+  shipping: parseFloat(urlParams.get("shipping") || 0),
+  image: decodeURIComponent(urlParams.get("image") || ""), // ✅ no proxying here
+  skuId: urlParams.get("skuId") || "",
+  minDelivery: urlParams.get("minDelivery") || "N/A",
+  maxDelivery: urlParams.get("maxDelivery") || "N/A"
+};
 
   const container = document.getElementById("productContainer");
 
@@ -141,28 +143,28 @@
     </div>
   `;
 
-  // Buy Now button sends to Stripe
-  container.querySelector(".buy-now-btn").addEventListener("click", async () => {
-    try {
-      const response = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: product.title,
-          price: product.price,
-          shipping_fee: product.shipping,
-          image: product.image,
-          productId: product.id,
-          skuId: product.skuId
-        })
-      });
-      const data = await response.json();
-      if(data.url) window.open(data.url, "_blank");
-      else alert("Failed to start checkout session.");
-    } catch(err) {
-      console.error("Stripe Checkout Error:", err);
-    }
-  });
+// Buy Now button sends to Stripe
+container.querySelector(".buy-now-btn").addEventListener("click", async () => {
+  try {
+    const response = await fetch(`${API_BASE}/api/cart/add`, { // ✅ fixed
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: product.title,
+        price: product.price,
+        shipping_fee: product.shipping,
+        image: product.image, // ✅ already proxied by renderProducts()
+        productId: product.id,
+        skuId: product.skuId
+      })
+    });
+    const data = await response.json();
+    if (data.url) window.open(data.url, "_blank");
+    else alert("Failed to start checkout session.");
+  } catch (err) {
+    console.error("Stripe Checkout Error:", err);
+  }
+});
 </script>
 </body>
 </html>
