@@ -497,50 +497,21 @@ async function initCarousel() {
       carouselItem.style.transition = "opacity 0.4s ease";
       carouselItem.style.opacity = 0;
 
-      setTimeout(() => {
-        carouselItem.innerHTML = `
-          <div class="carousel-card" style="text-align:center;">
-            <a href="${productUrl}" style="color:inherit;text-decoration:none;">
-              <img src="${proxyImage(product.skuImage || 'https://via.placeholder.com/150')}"
-                   alt="${product.title || ''}"
-                   style="max-width:100%;border-radius:6px;" />
-              <h3 style="margin:8px 0 4px;">${product.title || ""}</h3>
-              <p style="margin:0 0 6px;"><strong>$${parseFloat(product.price || 0).toFixed(2)}</strong></p>
-              <p style="margin:0 6px 8px;color:#444;font-size:0.9rem;">Delivery: ${deliveryText}</p>
-            </a>
-            <button class="metamask-btn" style="margin-top:6px;">Buy with MetaMask</button>
-          </div>
-        `;
-
-        const mmBtn = carouselItem.querySelector(".metamask-btn");
-        mmBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          const basePrice = parseFloat(product.price);
-          const shipping = parseFloat(product.shipping_fee) || 0;
-          const discountTotal = basePrice * 0.9;
-          const total = discountTotal + shipping;
-
-          const cart = {
-            title: product.title,
-            productId: product.id,
-            color: product.color || "",
-            image: proxyImage(product.skuImage),
-            price: basePrice,
-            shipping,
-            total,
-            discountTotal: discountTotal.toFixed(2)
-          };
-
-          const delivery = (product.min_delivery_days && product.max_delivery_days)
-            ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
-            : (product.min_delivery_days || product.max_delivery_days || "N/A");
-
-          const mmUrl = buildMetaMaskUrl(cart, delivery);
-          window.open(mmUrl, "_blank");
-        });
-
-        carouselItem.style.opacity = 1;
-      }, 400);
+        setTimeout(() => {
+          carouselItem.innerHTML = `
+            <div class="carousel-card" style="text-align:center;">
+              <a href="${productUrl}" style="color:inherit;text-decoration:none;">
+                <img src="${proxyImage(product.skuImage || 'https://via.placeholder.com/150')}"
+                     alt="${product.title || ''}"
+                     style="max-width:100%;border-radius:6px;" />
+                <h3 style="margin:8px 0 4px;">${product.title || ""}</h3>
+                <p style="margin:0 0 6px;"><strong>$${parseFloat(product.price || 0).toFixed(2)}</strong></p>
+                <p style="margin:0 6px 8px;color:#444;font-size:0.9rem;">Delivery: ${deliveryText}</p>
+              </a>
+            </div>
+          `;
+          carouselItem.style.opacity = 1;
+        }, 400);
     }
 
     function showPrev() { currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length; renderProduct(currentIndex); }
