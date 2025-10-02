@@ -508,6 +508,7 @@ async function initCarousel() {
               <p style="margin:0 0 6px;"><strong>$${parseFloat(product.price || 0).toFixed(2)}</strong></p>
               <p style="margin:0 6px 8px;color:#444;font-size:0.9rem;">Delivery: ${deliveryText}</p>
             </a>
+            <button class="metamask-btn" style="margin-top:6px;">Buy with MetaMask</button>
           </div>
         `;
 
