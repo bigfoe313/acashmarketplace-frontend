@@ -501,7 +501,7 @@ async function initCarousel() {
           carouselItem.innerHTML = `
             <div class="carousel-card" style="text-align:center;">
               <a href="${productUrl}" style="color:inherit;text-decoration:none;">
-                <img src="${proxyImage(skuDetails.skuImage || 'https://via.placeholder.com/150')}"
+                <img src="${proxyImage(product.skuImage || 'https://via.placeholder.com/150')}"
                      alt="${product.title || ''}"
                      style="max-width:100%;border-radius:6px;" />
                 <h3 style="margin:8px 0 4px;">${product.title || ""}</h3>
