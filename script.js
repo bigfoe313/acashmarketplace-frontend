@@ -514,10 +514,39 @@ async function initCarousel() {
         }, 400);
     }
 
-    function showPrev() { currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length; renderProduct(currentIndex); }
-    function showNext() { currentIndex = (currentIndex + 1) % featuredProducts.length; renderProduct(currentIndex); }
-    function togglePause() { isPaused = !isPaused; document.getElementById("pause-btn").textContent = isPaused ? "▶" : "❚❚"; if (isPaused) clearInterval(carouselInterval); else startCarousel(); }
-    function startCarousel() { clearInterval(carouselInterval); carouselInterval = setInterval(() => { if (!isPaused) { currentIndex = (currentIndex + 1) % featuredProducts.length; renderProduct(currentIndex); } }, 5000); }
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length;
+      renderProduct(currentIndex);
+    }
+    function showNext() {
+      currentIndex = (currentIndex + 1) % featuredProducts.length;
+      renderProduct(currentIndex);
+    }
+    function togglePause() {
+      isPaused = !isPaused;
+      document.getElementById("pause-btn").textContent = isPaused ? "▶" : "❚❚";
+      if (isPaused) clearInterval(carouselInterval);
+      else startCarousel();
+    }
+
+    function startCarousel() {
+      clearInterval(carouselInterval);
+      carouselInterval = setInterval(() => {
+        if (!isPaused) {
+          // Advance index
+          currentIndex = (currentIndex + 1) % featuredProducts.length;
+
+          // Render current product
+          renderProduct(currentIndex);
+
+          // If we've wrapped back to first product, stop carousel
+          if (currentIndex === 0) {
+            clearInterval(carouselInterval);
+            carouselInterval = null;
+          }
+        }
+      }, 5000); // adjust interval as needed
+    }
 
     controlsWrapper.querySelector("#prev-btn").onclick = showPrev;
     controlsWrapper.querySelector("#next-btn").onclick = showNext;
