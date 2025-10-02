@@ -466,9 +466,9 @@ async function initCarousel() {
     controlsWrapper.style.pointerEvents = "none";
 
     controlsWrapper.innerHTML = `
-      <button id="prev-btn" style="pointer-events:auto;">◀</button>
-      <button id="pause-btn" style="pointer-events:auto;">❚❚</button>
-      <button id="next-btn" style="pointer-events:auto;">▶</button>
+      <button id="prev-btn" style="pointer-events:auto;background:rgba(0,0,0,0.45);color:white;border:none;border-radius:20px;padding:6px 8px;cursor:pointer;">◀</button>
+      <button id="pause-btn" style="pointer-events:auto;background:rgba(0,0,0,0.45);color:white;border:none;border-radius:20px;padding:6px 10px;cursor:pointer;">❚❚</button>
+      <button id="next-btn" style="pointer-events:auto;background:rgba(0,0,0,0.45);color:white;border:none;border-radius:20px;padding:6px 8px;cursor:pointer;">▶</button>
     `;
     carouselContainer.style.position = "relative";
     carouselContainer.appendChild(controlsWrapper);
