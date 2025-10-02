@@ -75,14 +75,24 @@
 <div id="productContainer"></div>
 
 <script>
+  const API_BASE = ""; // adjust if needed (e.g. your Render backend URL)
+
+  // Proxy helper
+  function proxyImage(url) {
+    if (!url) return "";
+    return `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}`;
+  }
+
   // Parse product data from query string
   const urlParams = new URLSearchParams(window.location.search);
+  const rawImage = decodeURIComponent(urlParams.get("image") || "");
+
   const product = {
     id: urlParams.get("id"),
     title: decodeURIComponent(urlParams.get("title") || ""),
     price: parseFloat(urlParams.get("price") || 0),
     shipping: parseFloat(urlParams.get("shipping") || 0),
-    image: decodeURIComponent(urlParams.get("image") || ""),
+    image: proxyImage(rawImage), // ✅ always wrap here
     skuId: urlParams.get("skuId") || "",
     minDelivery: urlParams.get("minDelivery") || "N/A",
     maxDelivery: urlParams.get("maxDelivery") || "N/A"
@@ -90,23 +100,23 @@
 
   const container = document.getElementById("productContainer");
 
-  // Compute total & discounted price
+  // Compute totals
   const total = (product.price + product.shipping).toFixed(2);
   const discountPrice = (product.price * 0.9).toFixed(2);
 
   let delivery;
-  if(product.minDelivery !== "N/A" && product.maxDelivery !== "N/A") delivery = `${product.minDelivery}-${product.maxDelivery} Days`;
-  else if(product.minDelivery !== "N/A") delivery = `${product.minDelivery} Days`;
-  else if(product.maxDelivery !== "N/A") delivery = `${product.maxDelivery} Days`;
+  if (product.minDelivery !== "N/A" && product.maxDelivery !== "N/A") delivery = `${product.minDelivery}-${product.maxDelivery} Days`;
+  else if (product.minDelivery !== "N/A") delivery = `${product.minDelivery} Days`;
+  else if (product.maxDelivery !== "N/A") delivery = `${product.maxDelivery} Days`;
   else delivery = "N/A";
 
-  // Build Metamask URL for 10% discount
+  // Build Metamask URL
   const metamaskUrl = `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
     `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${product.price.toFixed(2)} A-CASH plus ${product.shipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
     `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${product.title}) - transactionHash`)}` +
     `&cartTitle=${encodeURIComponent(product.title)}` +
     `&cartProductId=${encodeURIComponent(product.id)}` +
-    `&cartImage=${encodeURIComponent(product.image)}` +
+    `&cartImage=${encodeURIComponent(product.image)}` +  <!-- ✅ now proxied -->
     `&span1=${encodeURIComponent(discountPrice + " A-CASH")}` +
     `&span2=${encodeURIComponent(product.shipping.toFixed(2) + " A-CASH")}` +
     `&span3=${encodeURIComponent(delivery)}` +
@@ -141,25 +151,25 @@
     </div>
   `;
 
-  // Buy Now button sends to Stripe
+  // Buy Now → Stripe Checkout
   container.querySelector(".buy-now-btn").addEventListener("click", async () => {
     try {
-      const response = await fetch("/api/cart/add", {
+      const response = await fetch(`${API_BASE}/api/cart/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: product.title,
           price: product.price,
           shipping_fee: product.shipping,
-          image: product.image,
+          image: product.image, // ✅ always proxied
           productId: product.id,
           skuId: product.skuId
         })
       });
       const data = await response.json();
-      if(data.url) window.open(data.url, "_blank");
+      if (data.url) window.open(data.url, "_blank");
       else alert("Failed to start checkout session.");
-    } catch(err) {
+    } catch (err) {
       console.error("Stripe Checkout Error:", err);
     }
   });
