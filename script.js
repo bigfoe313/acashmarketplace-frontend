@@ -161,212 +161,209 @@ document.addEventListener("DOMContentLoaded", () => {
   // Render Products
   // ---------------------------
 async function renderProducts(products) {
-  if (!resultsContainer) return;
+    if (!resultsContainer) return;
 
-  const filteredProducts = products.filter(p => {
-    const min = p.min_delivery_days;
-    const max = p.max_delivery_days;
-    return (min && min !== "N/A") || (max && max !== "N/A");
-  });
-
-  resultsContainer.innerHTML = "";
-
-  if (filteredProducts.length === 0) {
-    resultsContainer.innerHTML = "<p>No products with valid delivery info found.</p>";
-    return;
-  }
-
-  // Preload all images
-  const preloadImages = filteredProducts.map(p => {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.src = proxyImage(p.image);
-      img.onload = img.onerror = () => resolve();
+    const filteredProducts = products.filter(p => {
+      const min = p.min_delivery_days;
+      const max = p.max_delivery_days;
+      return (min && min !== "N/A") || (max && max !== "N/A");
     });
-  });
 
-  await Promise.all(preloadImages);
+    resultsContainer.innerHTML = "";
 
-  async function getMetaMaskCartData(product) {
-    const response = await fetch(`${API_BASE}/api/metamask-checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: product.title,
-        price: product.price,
-        shipping_fee: product.shipping_fee,
-        image: product.image,
-        productId: product.id,
-        skuId: product.sku_id,
-      }),
-    });
-    const data = await response.json();
-    return data.cart;
-  }
+    if (filteredProducts.length === 0) {
+      resultsContainer.innerHTML = "<p>No products with valid delivery info found.</p>";
+      return;
+    }
 
-  function buildMetaMaskUrl(cart, delivery) {
-    return (
-      `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
-      `_autoresponse=${encodeURIComponent(
-        `Thank you for shopping with us. Your order (${cart.price.toFixed(
-          2
-        )} A-CASH plus ${cart.shipping.toFixed(
-          2
-        )} A-CASH shipping cost) has been received and will be processed shortly.`
-      )}` +
-      `&_subject=${encodeURIComponent(
-        `A-CASH Marketplace order confirmation (${cart.title}) - transactionHash`
-      )}` +
-      `&cartTitle=${encodeURIComponent(cart.title)}` +
-      `&cartProductId=${encodeURIComponent(cart.productId)}` +
-      `&cartColor=${encodeURIComponent(cart.color || "Default")}` +
-      `&cartImage=${cart.image}` +
-      `&span1=${encodeURIComponent(`${cart.discountTotal} A-CASH`)}` +
-      `&span2=${encodeURIComponent(`${cart.shipping.toFixed(2)} A-CASH`)}` +
-      `&span3=${encodeURIComponent(delivery)}` +
-      `&span4=${encodeURIComponent(`${cart.total.toFixed(2)} A-CASH`)}` +
-      `&total=${encodeURIComponent(`${cart.total.toFixed(2)}`)}`
-    );
-  }
+    async function getMetaMaskCartData(product) {
+      const response = await fetch(`${API_BASE}/api/metamask-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: product.title,
+          price: product.price,
+          shipping_fee: product.shipping_fee,
+          image: product.image,
+          productId: product.id,
+          skuId: product.sku_id,
+        }),
+      });
+      const data = await response.json();
+      return data.cart;
+    }
 
-  filteredProducts.forEach(product => {
-    const card = document.createElement("div");
-    card.className = "product-card";
+    function buildMetaMaskUrl(cart, delivery) {
+      return (
+        `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
+        `_autoresponse=${encodeURIComponent(
+          `Thank you for shopping with us. Your order (${cart.price.toFixed(
+            2
+          )} A-CASH plus ${cart.shipping.toFixed(
+            2
+          )} A-CASH shipping cost) has been received and will be processed shortly.`
+        )}` +
+        `&_subject=${encodeURIComponent(
+          `A-CASH Marketplace order confirmation (${cart.title}) - transactionHash`
+        )}` +
+        `&cartTitle=${encodeURIComponent(cart.title)}` +
+        `&cartProductId=${encodeURIComponent(cart.productId)}` +
+        `&cartColor=${encodeURIComponent(cart.color || "Default")}` +
+        `&cartImage=${cart.image}` +
+        `&span1=${encodeURIComponent(`${cart.discountTotal} A-CASH`)}` +
+        `&span2=${encodeURIComponent(`${cart.shipping.toFixed(2)} A-CASH`)}` +
+        `&span3=${encodeURIComponent(delivery)}` +
+        `&span4=${encodeURIComponent(`${cart.total.toFixed(2)} A-CASH`)}` +
+        `&total=${encodeURIComponent(`${cart.total.toFixed(2)}`)}`
+      );
+    }
 
-    const title = product.title || "No title";
-    const price = parseFloat(product.price || "0");
-    const shippingFee = product.shipping_fee && product.shipping_fee !== "N/A" ? parseFloat(product.shipping_fee) : 0;
-    const total = (price + shippingFee).toFixed(2);
-    const image = proxyImage(product.image); // ✅ proxied image
+    filteredProducts.forEach(product => {
+      const card = document.createElement("div");
+      card.className = "product-card";
 
-    const min = product.min_delivery_days;
-    const max = product.max_delivery_days;
-    let delivery;
-    if (min && max && min !== "N/A" && max !== "N/A") delivery = `${min}-${max} Days`;
-    else if (min && min !== "N/A") delivery = `${min} Days`;
-    else if (max && max !== "N/A") delivery = `${max} Days`;
-    else delivery = "N/A";
+      const title = product.title || "No title";
+      const price = parseFloat(product.price || "0");
+      const shippingFee = product.shipping_fee && product.shipping_fee !== "N/A" ? parseFloat(product.shipping_fee) : 0;
+      const total = (price + shippingFee).toFixed(2);
+      const image = proxyImage(product.image); // ✅ proxy image
 
-    const discountPrice = (price * 0.9).toFixed(2);
+      const min = product.min_delivery_days;
+      const max = product.max_delivery_days;
+      let delivery;
+      if (min && max && min !== "N/A" && max !== "N/A") delivery = `${min}-${max} Days`;
+      else if (min && min !== "N/A") delivery = `${min} Days`;
+      else if (max && max !== "N/A") delivery = `${max} Days`;
+      else delivery = "N/A";
 
-    card.innerHTML = `
-      <img src="${image}" alt="${title}" class="clickable" />
-      <h3 class="clickable">${title}</h3>
-      <div class="price-info">
-        <p>Price: <strong>$${price.toFixed(2)}</strong></p>
-        <p>Shipping: <strong>$${shippingFee.toFixed(2)}</strong></p>
-        <p>Total: <strong>$${total}</strong></p>
-      </div>
-      <p>Delivery: ${delivery}</p>
-      <button class="buy-now-btn"
-        data-id="${product.id}"
-        data-title="${title}"
-        data-price="${price}"
-        data-shipping="${shippingFee}"
-        data-image="${image}"
-        data-skuid="${product.sku_id}"
-      >Buy Now</button>
+      const discountPrice = (price * 0.9).toFixed(2);
 
-      <div class="or-divider">
-        <div></div><span>OR</span><div></div>
-      </div>
-
-      <a href="#" class="metamask-btn">
-        <div class="mm-text">
-          <span class="mm-line1">Buy with 10% Discount</span>
-          <div class="mm-price-row">
-            <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
-            <img class="metamask-logo"
-                 src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024"
-                 alt="Metamask">
-          </div>
+      card.innerHTML = `
+        <img src="${image}" alt="${title}" class="clickable" />
+        <h3 class="clickable">${title}</h3>
+        <div class="price-info">
+          <p>Price: <strong>$${price.toFixed(2)}</strong></p>
+          <p>Shipping: <strong>$${shippingFee.toFixed(2)}</strong></p>
+          <p>Total: <strong>$${total}</strong></p>
         </div>
-      </a>
-    `;
+        <p>Delivery: ${delivery}</p>
+        <button class="buy-now-btn"
+          data-id="${product.id}"
+          data-title="${title}"
+          data-price="${price}"
+          data-shipping="${shippingFee}"
+          data-image="${image}"
+          data-skuid="${product.sku_id}"
+        >Buy Now</button>
 
-    resultsContainer.appendChild(card);
+        <div class="or-divider">
+          <div></div><span>OR</span><div></div>
+        </div>
 
-    // --- Hover styles ---
-    const style = document.createElement("style");
-    style.textContent = `
-      .product-card img.clickable, .product-card h3.clickable {
-        cursor: pointer;
-        transition: transform 0.15s ease, opacity 0.15s ease;
-      }
-      .product-card img.clickable:hover {
-        transform: scale(1.03);
-        opacity: 0.9;
-      }
-      .product-card h3.clickable:hover {
-        color: #0070f3;
-      }
-    `;
-    document.head.appendChild(style);
+        <a href="#" class="metamask-btn">
+          <div class="mm-text">
+            <span class="mm-line1">Buy with 10% Discount</span>
+            <div class="mm-price-row">
+              <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
+              <img class="metamask-logo"
+                   src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024"
+                   alt="Metamask">
+            </div>
+          </div>
+        </a>
+      `;
 
-    // --- Stripe Checkout ---
-    const handleCheckout = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/cart/add`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title,
-            price,
-            shipping_fee: shippingFee,
-            image,
-            productId: product.id,
-            skuId: product.sku_id,
-          }),
-        });
+      resultsContainer.appendChild(card);
 
-        const data = await response.json();
-        if (data.url) window.open(data.url, "_blank");
-        else alert("Failed to start checkout session.");
-      } catch (err) {
-        console.error("Stripe Checkout Error:", err);
-      }
-    };
-
-    card.querySelector(".buy-now-btn").addEventListener("click", handleCheckout);
-    card.querySelector("img").addEventListener("click", handleCheckout);
-    card.querySelector("h3").addEventListener("click", handleCheckout);
-
-    // ---------------------------
-    // MetaMask Checkout
-    // ---------------------------
-    const metamaskBtn = card.querySelector(".metamask-btn");
-    metamaskBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      try {
-        const cartData = await getMetaMaskCartData(product);
-        if (!cartData) {
-          alert("Failed to create MetaMask cart");
-          return;
+      // --- Hover styles ---
+      const style = document.createElement("style");
+      style.textContent = `
+        .product-card img.clickable, .product-card h3.clickable {
+          cursor: pointer;
+          transition: transform 0.15s ease, opacity 0.15s ease;
         }
+        .product-card img.clickable:hover {
+          transform: scale(1.03);
+          opacity: 0.9;
+        }
+        .product-card h3.clickable:hover {
+          color: #0070f3;
+        }
+      `;
+      document.head.appendChild(style);
 
-        const proxiedImage = proxyImage(cartData.image);
+      // --- Stripe Checkout ---
+      const handleCheckout = async () => {
+        try {
+          const response = await fetch(`${API_BASE}/api/cart/add`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title,
+              price,
+              shipping_fee: shippingFee,
+              image,
+              productId: product.id,
+              skuId: product.sku_id,
+            }),
+          });
 
-        const cart = {
-          ...cartData,
-          image: proxiedImage,
-          color: cartData.color || "Default",
-          total: cartData.total,
-          discountTotal: cartData.discountTotal,
-          price: cartData.price,
-          shipping: cartData.shipping,
-          title: cartData.title,
-          productId: cartData.productId,
-        };
+          const data = await response.json();
+          if (data.url) window.open(data.url, "_blank");
+          else alert("Failed to start checkout session.");
+        } catch (err) {
+          console.error("Stripe Checkout Error:", err);
+        }
+      };
 
-        const mmUrl = buildMetaMaskUrl(cart, delivery);
-        window.open(mmUrl, "_blank");
+      card.querySelector(".buy-now-btn").addEventListener("click", handleCheckout);
+      card.querySelector("img").addEventListener("click", handleCheckout);
+      card.querySelector("h3").addEventListener("click", handleCheckout);
 
-      } catch (err) {
-        console.error("MetaMask Checkout Error:", err);
-        alert("MetaMask checkout failed.");
-      }
+      // ---------------------------
+      // MetaMask Checkout
+      // ---------------------------
+      const metamaskBtn = card.querySelector(".metamask-btn");
+      metamaskBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        try {
+          const cartData = await getMetaMaskCartData(product); // your existing function
+
+          if (!cartData) {
+            alert("Failed to create MetaMask cart");
+            return;
+          }
+
+          // Wrap the image URL through your backend proxy
+          const proxiedImage = `${API_BASE}/api/image-proxy?url=${encodeURIComponent(cartData.image)}`;
+
+          // Build the cart object for MetaMask checkout
+          const cart = {
+            ...cartData,
+            image: proxiedImage, // ⚡ Important: use proxied URL
+            color: cartData.color || "Default",
+            total: cartData.total,
+            discountTotal: cartData.discountTotal,
+            price: cartData.price,
+            shipping: cartData.shipping,
+            title: cartData.title,
+            productId: cartData.productId,
+          };
+
+          // Construct MetaMask URL
+          const mmUrl = buildMetaMaskUrl(cart, product.min_delivery_days && product.max_delivery_days
+            ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
+            : (product.min_delivery_days || product.max_delivery_days || "N/A")
+          );
+
+          window.open(mmUrl, "_blank");
+
+        } catch (err) {
+          console.error("MetaMask Checkout Error:", err);
+          alert("MetaMask checkout failed.");
+        }
+      });
     });
-  });
 }
 
   window.fetchProducts = fetchProducts;
