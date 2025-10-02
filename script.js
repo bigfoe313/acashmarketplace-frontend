@@ -368,9 +368,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.fetchProducts = fetchProducts;
 
-  // ---------------------------
-  // Carousel for Landing Page
-  // ---------------------------
+async function fetchSkuDetails(product) {
+  if (!product.sku_id) return { color: "", skuImage: product.image };
+  try {
+    const res = await fetch(`${API_BASE}/api/sku-details`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: product.id, skuId: product.sku_id }),
+    });
+    const data = await res.json();
+    return {
+      color: data.color || "",
+      skuImage: data.skuImage || product.image,
+    };
+  } catch {
+    return { color: "", skuImage: product.image };
+  }
+}
+
 async function initCarousel() {
   const carouselContainer = document.getElementById("carouselContainer");
   const carouselItem = document.getElementById("carouselItem");
@@ -381,12 +396,12 @@ async function initCarousel() {
     "Smart Watch",
     "Laptop Computer",
     "Earphones & Headphones",
-    "Mobile Phones"
+    "Mobile Phones",
   ];
 
   let featuredProducts = [];
   const CACHE_KEY = "featuredProductsCache";
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  const CACHE_TTL = 5 * 60 * 1000;
   const proxyImage = (url) => `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}`;
 
   try {
@@ -400,17 +415,16 @@ async function initCarousel() {
 
     if (featuredProducts.length === 0) {
       const responses = await Promise.all(
-        searchTerms.map(term =>
+        searchTerms.map((term) =>
           fetch(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`)
-            .then(res => (res && res.ok ? res.json() : null))
+            .then((res) => (res.ok ? res.json() : null))
             .catch(() => null)
         )
       );
 
-      // pick one product per search term
       for (const data of responses) {
         if (!data || !Array.isArray(data.results) || data.results.length === 0) continue;
-        const candidates = data.results.filter(item => {
+        const candidates = data.results.filter((item) => {
           const min = item?.min_delivery_days;
           const max = item?.max_delivery_days;
           return (min && min !== "N/A") || (max && max !== "N/A");
@@ -420,27 +434,15 @@ async function initCarousel() {
         featuredProducts.push(pick);
       }
 
-      if (featuredProducts.length > 0) {
-        // Enrich each featured product with SKU details upfront
-        featuredProducts = await Promise.all(
-          featuredProducts.map(async (product) => {
-            try {
-              const skuDetails = await fetch(`${API_BASE}/api/sku-details`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: product.id, skuId: product.sku_id })
-              }).then(res => res.json());
-              return {
-                ...product,
-                color: skuDetails.color || "",
-                skuImage: skuDetails.skuImage || product.image
-              };
-            } catch {
-              return { ...product, color: "", skuImage: product.image };
-            }
-          })
-        );
+      // Fetch SKU details for all featured products
+      featuredProducts = await Promise.all(
+        featuredProducts.map(async (product) => {
+          const skuDetails = await fetchSkuDetails(product);
+          return { ...product, ...skuDetails };
+        })
+      );
 
+      if (featuredProducts.length > 0) {
         localStorage.setItem(
           CACHE_KEY,
           JSON.stringify({ timestamp: Date.now(), data: featuredProducts })
@@ -489,13 +491,14 @@ async function initCarousel() {
         skuId: product.sku_id ?? "",
         minDelivery: product.min_delivery_days ?? "",
         maxDelivery: product.max_delivery_days ?? "",
-        color: product.color ?? ""
+        color: product.color ?? "",
       }).toString();
 
       const productUrl = `product.html?${qp}`;
-      const deliveryText = (product.min_delivery_days && product.max_delivery_days)
-        ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
-        : (product.min_delivery_days || product.max_delivery_days || "N/A");
+      const deliveryText =
+        product.min_delivery_days && product.max_delivery_days
+          ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
+          : product.min_delivery_days || product.max_delivery_days || "N/A";
 
       carouselItem.style.transition = "opacity 0.4s ease";
       carouselItem.style.opacity = 0;
@@ -531,12 +534,13 @@ async function initCarousel() {
             price: basePrice,
             shipping,
             total,
-            discountTotal: discountTotal.toFixed(2)
+            discountTotal: discountTotal.toFixed(2),
           };
 
-          const delivery = (product.min_delivery_days && product.max_delivery_days)
-            ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
-            : (product.min_delivery_days || product.max_delivery_days || "N/A");
+          const delivery =
+            product.min_delivery_days && product.max_delivery_days
+              ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
+              : product.min_delivery_days || product.max_delivery_days || "N/A";
 
           const mmUrl = buildMetaMaskUrl(cart, delivery);
           window.open(mmUrl, "_blank");
@@ -546,10 +550,29 @@ async function initCarousel() {
       }, 400);
     }
 
-    function showPrev() { currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length; renderProduct(currentIndex); }
-    function showNext() { currentIndex = (currentIndex + 1) % featuredProducts.length; renderProduct(currentIndex); }
-    function togglePause() { isPaused = !isPaused; document.getElementById("pause-btn").textContent = isPaused ? "▶" : "❚❚"; if (isPaused) clearInterval(carouselInterval); else startCarousel(); }
-    function startCarousel() { clearInterval(carouselInterval); carouselInterval = setInterval(() => { if (!isPaused) { currentIndex = (currentIndex + 1) % featuredProducts.length; renderProduct(currentIndex); } }, 5000); }
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + featuredProducts.length) % featuredProducts.length;
+      renderProduct(currentIndex);
+    }
+    function showNext() {
+      currentIndex = (currentIndex + 1) % featuredProducts.length;
+      renderProduct(currentIndex);
+    }
+    function togglePause() {
+      isPaused = !isPaused;
+      document.getElementById("pause-btn").textContent = isPaused ? "▶" : "❚❚";
+      if (isPaused) clearInterval(carouselInterval);
+      else startCarousel();
+    }
+    function startCarousel() {
+      clearInterval(carouselInterval);
+      carouselInterval = setInterval(() => {
+        if (!isPaused) {
+          currentIndex = (currentIndex + 1) % featuredProducts.length;
+          renderProduct(currentIndex);
+        }
+      }, 5000);
+    }
 
     controlsWrapper.querySelector("#prev-btn").onclick = showPrev;
     controlsWrapper.querySelector("#next-btn").onclick = showNext;
@@ -557,7 +580,6 @@ async function initCarousel() {
 
     renderProduct(currentIndex);
     startCarousel();
-
   } catch (err) {
     console.error("Carousel error:", err);
     carouselItem.innerHTML = "<p>Failed to load featured products.</p>";
