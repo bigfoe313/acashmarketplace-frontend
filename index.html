@@ -276,6 +276,23 @@
       .top-bar { font-size: 14px; gap: 10px; }
     }
 
+    .join-sentence {
+      display: inline;
+      font-weight: 500;
+      color: #111; /* same as span text */
+    }
+    
+    .join-sentence a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    
+    .join-sentence a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
   </style>
 </head>
 
@@ -283,8 +300,9 @@
   <div class="top-bar">
     <a href="#" onclick="alert('The A-Cash Marketplace is an e-commerce marketplace governed by the African-American Union (AAU), a DAO promoting economic equality.')">About</a>
     <a href="#" id="contactLink">Contact</a>
-    <a href="https://www.cosmonomics.us/home/african-american-union" target="_blank">Join</a>
-    <span>to get A-Cash back</span>
+    <span class="join-sentence">
+      <a href="https://www.cosmonomics.us/home/african-american-union" target="_blank">Join</a> to get A-Cash back
+    </span>
   </div>
 
   <h1>🌍 A-Cash Marketplace</h1>
