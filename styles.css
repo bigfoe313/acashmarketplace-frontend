@@ -288,13 +288,17 @@ h1 {
 }
 
 /* Carousel container */
-.carousel-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  overflow: hidden;
-  position: relative;
-}
+ .carousel-container {
+   width: 100%;
+   max-width: 600px;
+   margin: 20px auto;
+   overflow: hidden;
+   position: relative;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   text-align: center;
+ }
 
 /* Carousel track (for smooth sliding) */
 .carousel-track {
@@ -315,10 +319,16 @@ h1 {
   text-align: center;
 }
 
+.carousel-card {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
 .carousel-card img {
-  max-width: 100%;
-  border-radius: 10px;
-  margin-bottom: 10px;
+  width: 100%;
+  border-radius: 12px;
+  height: auto;
 }
 
 .carousel-card h3 {
