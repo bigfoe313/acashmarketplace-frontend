@@ -205,11 +205,16 @@
 
     /* 🌀 Carousel */
     .carousel-container {
-      margin: 25px auto;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       text-align: center;
-      padding: 10px;
     }
-
     .carousel-item img {
       width: 200px;
       border-radius: 12px;
@@ -226,7 +231,18 @@
       user-select: none;
       -webkit-user-drag: none;
     }
-
+    
+    .carousel-card {
+      flex: 0 0 100%;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+    
+    .carousel-card img {
+      width: 100%;
+      border-radius: 12px;
+      height: auto;
+    }
 
     /* ✉️ Modal */
     .modal {
