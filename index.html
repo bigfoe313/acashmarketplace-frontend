@@ -221,6 +221,13 @@
       opacity: 1;
     }
 
+    .carousel-track {
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+
     /* ✉️ Modal */
     .modal {
       display: none;
@@ -322,9 +329,11 @@
 
   <div id="resultsContainer"></div>
 
-  <div id="carouselContainer" class="carousel-container">
-    <div id="carouselItem" class="carousel-item">
-      <img id="featured-loader" src="images/ACASH_Logo.png" alt="Loading..." />
+  <div id="carouselContainer" class="carousel-container" style="overflow:hidden;position:relative;">
+    <div id="carouselTrack" class="carousel-track" style="display:flex;transition:transform 0.6s ease;">
+      <div class="carousel-item" style="flex:0 0 100%;box-sizing:border-box;border:1px solid #333;border-radius:12px;overflow:hidden;margin:0 5px;">
+        <img id="featured-loader" src="images/ACASH_Logo.png" alt="Loading..." style="width:100%;height:auto;border-bottom:1px solid #222;">
+      </div>
     </div>
   </div>
 
@@ -504,8 +513,8 @@
       track.innerHTML = `<p>Failed to load featured products.</p>`;
     }
   }
-  // Run automatically
-  loadFeaturedProducts();
+  // Run automatically when DOM is ready
+  document.addEventListener("DOMContentLoaded", loadFeaturedProducts);
   </script>
   
   <script>
