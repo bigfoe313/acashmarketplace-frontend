@@ -306,31 +306,22 @@ h1 {
 }
 
 /* Each carousel card */
-.carousel-item {
-  flex: 0 0 100%;
-  box-sizing: border-box;
-  border: 1px solid #333;
-  border-radius: 12px;
-  overflow: hidden;
-  margin: 0 5px;
-  background-color: #111;
-  color: white;
+.carousel-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+  max-width: 400px;
+  text-align: center;
 }
 
-.carousel-item img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-bottom: 1px solid #222;
+.carousel-card img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
 
-.carousel-item h3 {
+.carousel-card h3 {
   font-size: 1rem;
-  margin: 0.5rem 0;
-  color: #fff;
-}
-
-.carousel-item p {
-  font-size: 0.9rem;
-  color: #bbb;
+  margin: 5px 0;
 }
