@@ -369,43 +369,71 @@
   <script src="script.js"></script>
 
   <script>
-  async function loadFeaturedProducts() {
-    const container = document.getElementById("featuredContainer");
-    container.innerHTML = "<p>Loading featured products...</p>";
+    async function loadFeaturedProducts() {
+      const container = document.getElementById("featuredContainer");
+      container.innerHTML = "<p>Loading featured products...</p>";
   
-    try {
-      const response = await fetch("https://acashmarketplace-backend.onrender.com"); 
-      // 👆 Replace with your real API (localhost or Render)
-      const data = await response.json();
+      // ✅ Automatically switch between local & production backends
+      const API_BASE =
+        window.location.hostname === "localhost"
+          ? "http://localhost:4000"
+          : "https://acashmarketplace-backend.onrender.com";
   
-      if (!data || !data.results || data.results.length === 0) {
-        container.innerHTML = "<p>No featured products available.</p>";
-        return;
+      try {
+        // ✅ Query featured or trending items from your backend search endpoint
+        const response = await fetch(`${API_BASE}/api/search?q=featured`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  
+        const data = await response.json();
+  
+        if (!data || !data.results || data.results.length === 0) {
+          container.innerHTML = "<p>No featured products available.</p>";
+          return;
+        }
+  
+        // ✅ Clear old content
+        container.innerHTML = "";
+  
+        // ✅ Display first 8 featured products
+        data.results.slice(0, 8).forEach(product => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.style.maxWidth = "400px";
+          card.style.margin = "10px auto";
+          card.style.border = "1px solid #333";
+          card.style.borderRadius = "10px";
+          card.style.overflow = "hidden";
+          card.style.background = "#111";
+          card.style.color = "#fff";
+          card.style.textAlign = "center";
+          card.style.paddingBottom = "10px";
+  
+          card.innerHTML = `
+            <img src="${product.image || 'default.png'}" 
+                 alt="${product.title}" 
+                 style="width:100%;height:auto;border-bottom:1px solid #222;">
+            <div style="padding:10px;">
+              <h3 style="font-size:1rem;margin:0 0 6px;">${product.title}</h3>
+              <p style="margin:0 0 6px;font-size:1.1rem;">$${product.sale_price || "N/A"}</p>
+              <button class="buy-now-btn" data-id="${product.product_id}" 
+                      style="background:#0d6efd;border:none;color:#fff;
+                             padding:6px 12px;border-radius:6px;cursor:pointer;">
+                Buy Now
+              </button>
+            </div>
+          `;
+  
+          container.appendChild(card);
+        });
+  
+      } catch (error) {
+        console.error("Error loading featured products:", error);
+        container.innerHTML = "<p>Failed to load featured products.</p>";
       }
-  
-      // Clear container before rendering
-      container.innerHTML = "";
-  
-      // Render each product as a card (same layout as search results)
-      data.results.slice(0, 8).forEach(product => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-  
-        card.innerHTML = `
-          <img src="${product.image || 'default.png'}" alt="${product.title}">
-          <h3>${product.title}</h3>
-          <p>$${product.sale_price || "N/A"}</p>
-          <button class="buy-now-btn" data-id="${product.product_id}">Buy Now</button>
-        `;
-  
-        container.appendChild(card);
-      });
-  
-    } catch (error) {
-      console.error("Error loading featured products:", error);
-      container.innerHTML = "<p>Failed to load featured products.</p>";
     }
-  }
+  
+    // ✅ Run automatically on page load
+    loadFeaturedProducts();
   </script>
   
   <script>
