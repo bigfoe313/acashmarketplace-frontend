@@ -371,7 +371,11 @@
   <script>
     async function loadFeaturedProducts() {
       const container = document.getElementById("featuredContainer");
+      const header = document.querySelector('.featured-products-section h2');  // Select the header element
       container.innerHTML = "<p></p>";
+    
+      // Initially hide the header before products are loaded
+      header.style.display = "none";
     
       const API_BASE =
         window.location.hostname === "localhost"
@@ -391,7 +395,7 @@
         return new Promise((resolve) => {
           const img = new Image();
           img.src = imageUrl;
-          
+    
           // Wait for the image to load and check its natural size
           img.onload = () => {
             // Check if the image is square (width === height) and its dimensions are valid
@@ -437,42 +441,44 @@
     
         if (products.length === 0) {
           container.innerHTML = "<p>No featured products available.</p>";
-          return;
+        } else {
+          container.innerHTML = "";
+          products.slice(0, 10).forEach(prod => {
+            const deliveryText =
+              prod.min_delivery_days && prod.max_delivery_days
+                ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
+                : prod.min_delivery_days || prod.max_delivery_days || "N/A";
+    
+            const qp = new URLSearchParams({
+              id: prod.id ?? "",
+              title: prod.title ?? "",
+              price: prod.price ?? "0",
+              shipping: prod.shipping_fee ?? "0",
+              image: prod.image ?? "",
+              skuId: prod.sku_id ?? "",
+              minDelivery: prod.min_delivery_days ?? "",
+              maxDelivery: prod.max_delivery_days ?? ""
+            }).toString();
+    
+            const productUrl = `product.html?${qp}`;
+    
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = `
+              <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
+                <img src="${prod.image || 'default.png'}" alt="${prod.alt || prod.title}">
+                <h3>${prod.title}</h3>
+                <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
+                <p style="color:#555;font-size:0.9rem;">Delivery: ${deliveryText}</p>
+              </a>
+            `;
+    
+            container.appendChild(card);
+          });
+    
+          // Unhide the header after products are loaded
+          header.style.display = "block";
         }
-    
-        container.innerHTML = "";
-        products.slice(0, 10).forEach(prod => {
-          const deliveryText =
-            prod.min_delivery_days && prod.max_delivery_days
-              ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
-              : prod.min_delivery_days || prod.max_delivery_days || "N/A";
-    
-          const qp = new URLSearchParams({
-            id: prod.id ?? "",
-            title: prod.title ?? "",
-            price: prod.price ?? "0",
-            shipping: prod.shipping_fee ?? "0",
-            image: prod.image ?? "",
-            skuId: prod.sku_id ?? "",
-            minDelivery: prod.min_delivery_days ?? "",
-            maxDelivery: prod.max_delivery_days ?? ""
-          }).toString();
-    
-          const productUrl = `product.html?${qp}`;
-    
-          const card = document.createElement("div");
-          card.className = "product-card";
-          card.innerHTML = `
-            <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
-              <img src="${prod.image || 'default.png'}" alt="${prod.alt || prod.title}">
-              <h3>${prod.title}</h3>
-              <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
-              <p style="color:#555;font-size:0.9rem;">Delivery: ${deliveryText}</p>
-            </a>
-          `;
-    
-          container.appendChild(card);
-        });
     
       } catch (error) {
         console.error("Error loading featured products:", error);
