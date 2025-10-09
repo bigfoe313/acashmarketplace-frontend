@@ -371,13 +371,8 @@
   <script>
     async function loadFeaturedProducts() {
       const container = document.getElementById("featuredContainer");
-      container.innerHTML = "<p></p>";
-  
-      const API_BASE =
-        window.location.hostname === "localhost"
-          ? "http://localhost:4000"
-          : "https://acashmarketplace-backend.onrender.com";
-  
+      container.innerHTML = "<p>Loading featured products...</p>";
+    
       const searchTerms = [
         "Smart Glasses",
         "Smart Watch",
@@ -385,64 +380,65 @@
         "Earphones & Headphones",
         "Mobile Phones"
       ];
-  
+    
       try {
+        const API_BASE = window.location.hostname === "localhost"
+          ? "http://localhost:4000"
+          : "https://acashmarketplace-backend.onrender.com";
+    
+        // Fetch results for all search terms
         const responses = await Promise.all(
           searchTerms.map(term =>
             fetch(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`)
-              .then(res => (res.ok ? res.json() : null))
+              .then(res => res.ok ? res.json() : null)
               .catch(() => null)
           )
         );
-  
-        const products = [];
+    
+        let products = [];
         for (const data of responses) {
           if (!data || !Array.isArray(data.results)) continue;
-          const valid = data.results.filter(p => p.image && p.title && p.price);
+    
+          // Filter out items missing delivery info
+          const valid = data.results.filter(p =>
+            p.image && p.title && p.price &&
+            (p.min_delivery_days || p.max_delivery_days) // ✅ delivery must exist
+          );
+    
           if (valid.length > 0) {
-            products.push(...valid.slice(0, 2));
+            const pick = valid[Math.floor(Math.random() * valid.length)];
+            products.push(pick);
           }
         }
-  
+    
         if (products.length === 0) {
           container.innerHTML = "<p>No featured products available.</p>";
           return;
         }
-  
+    
+        // Clear container
         container.innerHTML = "";
-        products.slice(0, 10).forEach(prod => {
-          const deliveryText =
-            (prod.min_delivery_days && prod.max_delivery_days)
-              ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
-              : (prod.min_delivery_days || prod.max_delivery_days || "N/A");
-  
-          const qp = new URLSearchParams({
-            id: prod.id ?? "",
-            title: prod.title ?? "",
-            price: prod.price ?? "0",
-            shipping: prod.shipping_fee ?? "0",
-            image: prod.image ?? "",
-            skuId: prod.sku_id ?? "",
-            minDelivery: prod.min_delivery_days ?? "",
-            maxDelivery: prod.max_delivery_days ?? ""
-          }).toString();
-  
-          const productUrl = `product.html?${qp}`;
-  
+    
+        // Render cards
+        products.forEach(product => {
+          const deliveryText = (product.min_delivery_days && product.max_delivery_days)
+            ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
+            : (product.min_delivery_days || product.max_delivery_days || "N/A");
+    
           const card = document.createElement("div");
           card.className = "product-card";
+    
           card.innerHTML = `
-            <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
-              <img src="${prod.image || 'default.png'}" alt="${prod.title}">
-              <h3>${prod.title}</h3>
-              <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
-              <p style="color:#555;font-size:0.9rem;">Delivery: ${deliveryText}</p>
+            <a href="product.html?id=${product.id}">
+              <img src="${product.image}" alt="${product.title}">
+              <h3>${product.title}</h3>
+              <p>$${parseFloat(product.price).toFixed(2)}</p>
+              <p style="font-size:0.9rem;color:#777;">Delivery: ${deliveryText}</p>
             </a>
           `;
-  
           container.appendChild(card);
         });
-  
+    
       } catch (error) {
         console.error("Error loading featured products:", error);
         container.innerHTML = "<p>Failed to load featured products.</p>";
