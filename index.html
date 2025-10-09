@@ -398,7 +398,16 @@
         const products = [];
         for (const data of responses) {
           if (!data || !Array.isArray(data.results)) continue;
-          const valid = data.results.filter(p => p.image && p.title && p.price);
+  
+          // ✅ Filter: has image, title, price, AND delivery info
+          const valid = data.results.filter(
+            p =>
+              p.image &&
+              p.title &&
+              p.price &&
+              (p.min_delivery_days || p.max_delivery_days)
+          );
+  
           if (valid.length > 0) {
             products.push(...valid.slice(0, 2));
           }
@@ -412,9 +421,9 @@
         container.innerHTML = "";
         products.slice(0, 10).forEach(prod => {
           const deliveryText =
-            (prod.min_delivery_days && prod.max_delivery_days)
+            prod.min_delivery_days && prod.max_delivery_days
               ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
-              : (prod.min_delivery_days || prod.max_delivery_days || "N/A");
+              : prod.min_delivery_days || prod.max_delivery_days || "N/A";
   
           const qp = new URLSearchParams({
             id: prod.id ?? "",
@@ -442,7 +451,6 @@
   
           container.appendChild(card);
         });
-  
       } catch (error) {
         console.error("Error loading featured products:", error);
         container.innerHTML = "<p>Failed to load featured products.</p>";
