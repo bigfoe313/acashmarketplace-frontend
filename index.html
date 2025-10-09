@@ -322,11 +322,10 @@
 
   <div id="resultsContainer"></div>
 
-  <div id="carouselContainer" class="carousel-container">
-    <div id="carouselItem" class="carousel-item">
-      <img id="featured-loader" src="images/ACASH_Logo.png" alt="Loading..." />
-    </div>
-  </div>
+  <section id="featuredProducts" class="featured-products-section">
+    <h2>Featured Products</h2>
+    <div id="featuredContainer" class="featured-grid"></div>
+  </section>
 
   <div id="contactModal" class="modal">
     <div class="modal-content">
@@ -336,6 +335,48 @@
   </div>
 
   <script src="script.js"></script>
+
+  <script>
+    async function loadFeaturedProducts() {
+    const container = document.getElementById("featuredContainer");
+    container.innerHTML = "<p>Loading featured products...</p>";
+  
+    try {
+      const response = await fetch("https://your-backend-or-localhost/api/featured"); 
+      // 👆 Replace with your real API (localhost or Render)
+      const data = await response.json();
+  
+      if (!data || !data.results || data.results.length === 0) {
+        container.innerHTML = "<p>No featured products available.</p>";
+        return;
+      }
+  
+      // Clear container before rendering
+      container.innerHTML = "";
+  
+      // Render each product as a card (same layout as search results)
+      data.results.slice(0, 8).forEach(product => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+  
+        card.innerHTML = `
+          <img src="${product.image || 'default.png'}" alt="${product.title}">
+          <h3>${product.title}</h3>
+          <p>$${product.sale_price || "N/A"}</p>
+          <button class="buy-now-btn" data-id="${product.product_id}">Buy Now</button>
+        `;
+  
+        container.appendChild(card);
+      });
+  
+    } catch (error) {
+      console.error("Error loading featured products:", error);
+      container.innerHTML = "<p>Failed to load featured products.</p>";
+    }
+  }
+
+  </script>
+  
   <script>
     // Modal logic
     const contactLink = document.getElementById('contactLink');
