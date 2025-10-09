@@ -136,21 +136,16 @@ h1 {
 
 .product-card {
   background: white;
-  padding: 12px;
+  padding: 12px 12px 20px; /* Added padding at the bottom (12px left/right, 20px bottom) */
   border-radius: 12px;
   border: 1px solid #eee;
   box-shadow: var(--card-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  flex-direction: column; /* Ensures content is stacked vertically */
-  justify-content: space-between; /* Distributes space between elements */
-  height: 100%; /* Ensure it stretches to the available height */
-  padding-bottom: 15px; /* Add some padding at the bottom */
 }
 
 .product-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 .product-card img {
@@ -162,15 +157,30 @@ h1 {
 .product-card h3 {
   font-size: 15px;
   margin: 8px 0;
-  height: auto; /* Allow title to grow dynamically */
+  height: 40px;
   overflow: hidden;
-  flex-grow: 1; /* Allows title to grow */
 }
 
 .product-card p {
   font-weight: bold;
   margin: 6px 0;
   color: #333;
+}
+
+.buy-now-btn {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 0;
+  width: 100%;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.buy-now-btn:hover {
+  background-color: var(--primary-dark);
 }
 
 .price-info p {
