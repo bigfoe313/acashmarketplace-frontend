@@ -371,8 +371,8 @@
   <script>
     async function loadFeaturedProducts() {
       const container = document.getElementById("featuredContainer");
-      const header = document.getElementById("featuredHeader"); // 👈 new line
-      header.style.display = "none"; // 👈 hide header initially
+      const header = document.getElementById("featuredHeader"); // new line
+      header.style.display = "none"; // hide header initially
       container.innerHTML = "<p></p>";
   
       const API_BASE =
@@ -405,7 +405,11 @@
             const hasValidDelivery =
               (p.min_delivery_days && p.min_delivery_days !== "N/A") ||
               (p.max_delivery_days && p.max_delivery_days !== "N/A");
-            return p.image && p.title && p.price && hasValidDelivery;
+  
+            // Filter out products with a placeholder or icon image (e.g. default icon URLs)
+            const isValidImage = p.image && !p.image.includes("icon") && !p.image.includes("placeholder");
+  
+            return p.image && p.title && p.price && hasValidDelivery && isValidImage;
           });
   
           if (valid.length > 0) {
@@ -418,7 +422,7 @@
           return;
         }
   
-        // ✅ Show header once we have products
+        // Show header once we have products
         header.style.display = "block";
   
         container.innerHTML = "";
