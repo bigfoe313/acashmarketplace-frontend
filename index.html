@@ -146,9 +146,10 @@
       box-shadow: var(--card-shadow);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       display: flex;
-      flex-direction: column; /* Allows the card to grow vertically */
+      flex-direction: column; /* Ensures content is stacked vertically */
       justify-content: space-between; /* Distributes space between elements */
       height: 100%; /* Ensure it stretches to the available height */
+      padding-bottom: 15px; /* Add some padding at the bottom */
     }
     
     .product-card:hover {
@@ -165,9 +166,9 @@
     .product-card h3 {
       font-size: 15px;
       margin: 8px 0;
-      height: auto; /* Remove fixed height */
+      height: auto; /* Allow title to grow dynamically */
       overflow: hidden;
-      flex-grow: 1; /* Allow title to grow */
+      flex-grow: 1; /* Allows title to grow */
     }
     
     .product-card p {
