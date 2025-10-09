@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const query = searchInput.value.trim();
     if (!query) return alert("Please enter a search term.");
 
-    resultsContainer && (resultsContainer.innerHTML = '<p class="spinner">Loading products...</p>');
+    resultsContainer && (resultsContainer.innerHTML = '<p class="spinner"></p>');
 
     try {
       const response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`);
