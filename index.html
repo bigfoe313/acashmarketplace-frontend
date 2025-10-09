@@ -371,15 +371,13 @@
   <script>
     async function loadFeaturedProducts() {
       const container = document.getElementById("featuredContainer");
-      const header = document.getElementById("featuredHeader"); // new line
-      header.style.display = "none"; // hide header initially
-      container.innerHTML = "<p></p>";
-  
+      container.innerHTML = "<p>Loading featured products...</p>";
+    
       const API_BASE =
         window.location.hostname === "localhost"
           ? "http://localhost:4000"
           : "https://acashmarketplace-backend.onrender.com";
-  
+    
       const searchTerms = [
         "Smart Glasses",
         "Smart Watch",
@@ -387,7 +385,7 @@
         "Earphones & Headphones",
         "Mobile Phones"
       ];
-  
+    
       try {
         const responses = await Promise.all(
           searchTerms.map(term =>
@@ -396,42 +394,39 @@
               .catch(() => null)
           )
         );
-  
+    
         const products = [];
         for (const data of responses) {
           if (!data || !Array.isArray(data.results)) continue;
-  
+    
+          // ✅ Filter: Only include products with valid delivery days and images that have non-empty alt text
           const valid = data.results.filter(p => {
             const hasValidDelivery =
               (p.min_delivery_days && p.min_delivery_days !== "N/A") ||
               (p.max_delivery_days && p.max_delivery_days !== "N/A");
-  
-            // Filter out products with a placeholder or icon image (e.g. default icon URLs)
-            const isValidImage = p.image && !p.image.includes("icon") && !p.image.includes("placeholder");
-  
-            return p.image && p.title && p.price && hasValidDelivery && isValidImage;
+    
+            const hasValidImage = p.image && p.image.trim() !== "" && p.alt !== "";
+    
+            return p.title && p.price && hasValidDelivery && hasValidImage;
           });
-  
+    
           if (valid.length > 0) {
             products.push(...valid.slice(0, 2));
           }
         }
-  
+    
         if (products.length === 0) {
           container.innerHTML = "<p>No featured products available.</p>";
           return;
         }
-  
-        // Show header once we have products
-        header.style.display = "block";
-  
+    
         container.innerHTML = "";
         products.slice(0, 10).forEach(prod => {
           const deliveryText =
             prod.min_delivery_days && prod.max_delivery_days
               ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
               : prod.min_delivery_days || prod.max_delivery_days || "N/A";
-  
+    
           const qp = new URLSearchParams({
             id: prod.id ?? "",
             title: prod.title ?? "",
@@ -442,28 +437,29 @@
             minDelivery: prod.min_delivery_days ?? "",
             maxDelivery: prod.max_delivery_days ?? ""
           }).toString();
-  
+    
           const productUrl = `product.html?${qp}`;
-  
+    
           const card = document.createElement("div");
           card.className = "product-card";
           card.innerHTML = `
             <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
-              <img src="${prod.image || 'default.png'}" alt="${prod.title}">
+              <img src="${prod.image || 'default.png'}" alt="${prod.alt || prod.title}">
               <h3>${prod.title}</h3>
               <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
               <p style="color:#555;font-size:0.9rem;">Delivery: ${deliveryText}</p>
             </a>
           `;
-  
+    
           container.appendChild(card);
         });
+    
       } catch (error) {
         console.error("Error loading featured products:", error);
         container.innerHTML = "<p>Failed to load featured products.</p>";
       }
     }
-  
+    
     loadFeaturedProducts();
   </script>
   
