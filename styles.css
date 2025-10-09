@@ -319,16 +319,29 @@ h1 {
   text-align: center;
 }
 
+/* Each carousel card fills the container but leaves a little padding */
 .carousel-card {
   flex: 0 0 100%;
+  max-width: 100%;
   box-sizing: border-box;
-  padding: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
 }
 
+/* Ensure images fit perfectly without overflowing */
 .carousel-card img {
+  display: block;
   width: 100%;
-  border-radius: 12px;
   height: auto;
+  max-height: 300px; /* Keeps image proportionate in 400px container */
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 8px;
 }
 
 .carousel-card h3 {
