@@ -373,29 +373,51 @@
       const container = document.getElementById("featuredContainer");
       container.innerHTML = "<p>Loading featured products...</p>";
   
-      // ✅ Automatically switch between local & production backends
+      // ✅ Use local or production API base
       const API_BASE =
         window.location.hostname === "localhost"
           ? "http://localhost:4000"
           : "https://acashmarketplace-backend.onrender.com";
   
+      // ✅ Your main featured product search categories
+      const searchTerms = [
+        "Smart Glasses",
+        "Smart Watch",
+        "Laptop Computer",
+        "Earphones & Headphones",
+        "Mobile Phones"
+      ];
+  
       try {
-        // ✅ Fetch featured products (you can replace 'featured' with any category)
-        const response = await fetch(`${API_BASE}/api/search?q=featured`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        // ✅ Fetch from all search terms in parallel
+        const responses = await Promise.all(
+          searchTerms.map(term =>
+            fetch(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`)
+              .then(res => (res.ok ? res.json() : null))
+              .catch(() => null)
+          )
+        );
   
-        const data = await response.json();
+        // ✅ Collect results from all categories
+        const products = [];
+        for (const data of responses) {
+          if (!data || !Array.isArray(data.results)) continue;
+          const valid = data.results.filter(p => p.image && p.title && p.price);
+          if (valid.length > 0) {
+            // Pick one or two from each term for diversity
+            const picks = valid.slice(0, 2);
+            products.push(...picks);
+          }
+        }
   
-        if (!data || !data.results || data.results.length === 0) {
+        if (products.length === 0) {
           container.innerHTML = "<p>No featured products available.</p>";
           return;
         }
   
-        // ✅ Clear previous content
+        // ✅ Clear container and render cards
         container.innerHTML = "";
-  
-        // ✅ Render up to 8 product cards
-        data.results.slice(0, 8).forEach(prod => {
+        products.slice(0, 10).forEach(prod => {
           const deliveryText = (prod.min_delivery_days && prod.max_delivery_days)
             ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
             : (prod.min_delivery_days || prod.max_delivery_days || "N/A");
@@ -414,6 +436,7 @@
   
           const productUrl = `product.html?${qp}`;
   
+          // ✅ Product card
           const card = document.createElement("div");
           card.className = "product-card";
           card.style.maxWidth = "400px";
@@ -453,7 +476,7 @@
       }
     }
   
-    // ✅ Run automatically on page load
+    // ✅ Run on page load
     loadFeaturedProducts();
   </script>
   
