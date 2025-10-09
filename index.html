@@ -380,7 +380,7 @@
           : "https://acashmarketplace-backend.onrender.com";
   
       try {
-        // ✅ Query featured or trending items from your backend search endpoint
+        // ✅ Fetch featured products (you can replace 'featured' with any category)
         const response = await fetch(`${API_BASE}/api/search?q=featured`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
   
@@ -391,11 +391,29 @@
           return;
         }
   
-        // ✅ Clear old content
+        // ✅ Clear previous content
         container.innerHTML = "";
   
-        // ✅ Display first 8 featured products
-        data.results.slice(0, 8).forEach(product => {
+        // ✅ Render up to 8 product cards
+        data.results.slice(0, 8).forEach(prod => {
+          const deliveryText = (prod.min_delivery_days && prod.max_delivery_days)
+            ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
+            : (prod.min_delivery_days || prod.max_delivery_days || "N/A");
+  
+          // Build query parameters for product.html
+          const qp = new URLSearchParams({
+            id: prod.id ?? "",
+            title: prod.title ?? "",
+            price: prod.price ?? "0",
+            shipping: prod.shipping_fee ?? "0",
+            image: prod.image ?? "",
+            skuId: prod.sku_id ?? "",
+            minDelivery: prod.min_delivery_days ?? "",
+            maxDelivery: prod.max_delivery_days ?? ""
+          }).toString();
+  
+          const productUrl = `product.html?${qp}`;
+  
           const card = document.createElement("div");
           card.className = "product-card";
           card.style.maxWidth = "400px";
@@ -409,18 +427,21 @@
           card.style.paddingBottom = "10px";
   
           card.innerHTML = `
-            <img src="${product.image || 'default.png'}" 
-                 alt="${product.title}" 
-                 style="width:100%;height:auto;border-bottom:1px solid #222;">
-            <div style="padding:10px;">
-              <h3 style="font-size:1rem;margin:0 0 6px;">${product.title}</h3>
-              <p style="margin:0 0 6px;font-size:1.1rem;">$${product.sale_price || "N/A"}</p>
-              <button class="buy-now-btn" data-id="${product.product_id}" 
-                      style="background:#0d6efd;border:none;color:#fff;
-                             padding:6px 12px;border-radius:6px;cursor:pointer;">
-                Buy Now
-              </button>
-            </div>
+            <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
+              <img src="${prod.image || 'default.png'}" 
+                   alt="${prod.title}" 
+                   style="width:100%;height:auto;border-bottom:1px solid #222;">
+              <div style="padding:10px;">
+                <h3 style="font-size:1rem;margin:0 0 6px;">${prod.title}</h3>
+                <p style="margin:0 0 6px;font-size:1.1rem;">$${parseFloat(prod.price || 0).toFixed(2)}</p>
+                <p style="color:#999;font-size:0.9rem;">Delivery: ${deliveryText}</p>
+                <button class="buy-now-btn"
+                        style="background:#0d6efd;border:none;color:#fff;
+                               padding:6px 12px;border-radius:6px;cursor:pointer;margin-top:6px;">
+                  Buy Now
+                </button>
+              </div>
+            </a>
           `;
   
           container.appendChild(card);
