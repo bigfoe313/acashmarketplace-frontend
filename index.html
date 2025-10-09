@@ -205,16 +205,11 @@
 
     /* 🌀 Carousel */
     .carousel-container {
-      width: 100%;
-      max-width: 400px;
-      margin: 20px auto;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      margin: 25px auto;
       text-align: center;
+      padding: 10px;
     }
+
     .carousel-item img {
       width: 200px;
       border-radius: 12px;
@@ -224,37 +219,6 @@
 
     .carousel-item img:hover {
       opacity: 1;
-    }
-
-    .carousel-track {
-      touch-action: pan-y;
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-    
-    /* Each carousel card fills the container but leaves a little padding */
-    .carousel-card {
-      flex: 0 0 100%;
-      max-width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-    
-    /* Ensure images fit perfectly without overflowing */
-    .carousel-card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-height: 300px; /* Keeps image proportionate in 400px container */
-      object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 8px;
     }
 
     /* ✉️ Modal */
@@ -358,11 +322,9 @@
 
   <div id="resultsContainer"></div>
 
-  <div id="carouselContainer" class="carousel-container" style="overflow:hidden;position:relative;">
-    <div id="carouselTrack" class="carousel-track" style="display:flex;transition:transform 0.6s ease;">
-      <div class="carousel-item" style="flex:0 0 100%;box-sizing:border-box;border:1px solid #333;border-radius:12px;overflow:hidden;margin:0 5px;">
-        <img id="featured-loader" src="images/ACASH_Logo.png" alt="Loading..." style="width:100%;height:auto;border-bottom:1px solid #222;">
-      </div>
+  <div id="carouselContainer" class="carousel-container">
+    <div id="carouselItem" class="carousel-item">
+      <img id="featured-loader" src="images/ACASH_Logo.png" alt="Loading..." />
     </div>
   </div>
 
@@ -374,180 +336,6 @@
   </div>
 
   <script src="script.js"></script>
-
-  <script>
-/*
-  async function loadFeaturedProducts() {
-    // Detect API base for local vs. production
-    const API_BASE = window.location.hostname === "localhost"
-      ? "http://localhost:4000"
-      : "https://acashmarketplace-backend.onrender.com";
-
-    const track = document.getElementById("carouselTrack");
-    if (!track) return;
-
-    const carouselContainer = track.parentElement;
-
-    // Add a Pause/Play button
-    let isPaused = false;
-    let pauseButton = document.getElementById("pauseButton");
-    if (!pauseButton) {
-      pauseButton = document.createElement("button");
-      pauseButton.id = "pauseButton";
-      pauseButton.textContent = "⏸️ Pause";
-      pauseButton.style.position = "absolute";
-      pauseButton.style.bottom = "10px";
-      pauseButton.style.right = "10px";
-      pauseButton.style.background = "rgba(0,0,0,0.6)";
-      pauseButton.style.color = "white";
-      pauseButton.style.border = "none";
-      pauseButton.style.borderRadius = "8px";
-      pauseButton.style.padding = "6px 10px";
-      pauseButton.style.cursor = "pointer";
-      pauseButton.style.zIndex = "10";
-      pauseButton.addEventListener("click", () => {
-        isPaused = !isPaused;
-        pauseButton.textContent = isPaused ? "▶️ Play" : "⏸️ Pause";
-      });
-      carouselContainer.style.position = "relative";
-      carouselContainer.appendChild(pauseButton);
-    }
-
-    const searchTerms = [
-      "Smart Glasses",
-      "Smart Watch",
-      "Laptop Computer",
-      "Earphones & Headphones",
-      "Mobile Phones"
-    ];
-
-    try {
-      const responses = await Promise.all(
-        searchTerms.map(term =>
-          fetch(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`)
-            .then(res => (res && res.ok ? res.json() : null))
-            .catch(() => null)
-        )
-      );
-
-      const products = [];
-      for (const data of responses) {
-        if (!data || !Array.isArray(data.results)) continue;
-        const valid = data.results.filter(p => p.image && p.title && p.price);
-        if (valid.length > 0) {
-          const pick = valid[Math.floor(Math.random() * valid.length)];
-          products.push(pick);
-        }
-      }
-
-      if (products.length === 0) {
-        track.innerHTML = `<p>No featured products found.</p>`;
-        return;
-      }
-
-      track.innerHTML = "";
-      products.forEach(prod => {
-        const deliveryText = (prod.min_delivery_days && prod.max_delivery_days)
-          ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
-          : (prod.min_delivery_days || prod.max_delivery_days || "N/A");
-
-        const qp = new URLSearchParams({
-          id: prod.id ?? "",
-          title: prod.title ?? "",
-          price: prod.price ?? "0",
-          shipping: prod.shipping_fee ?? "0",
-          image: prod.image ?? "",
-          skuId: prod.sku_id ?? "",
-          minDelivery: prod.min_delivery_days ?? "",
-          maxDelivery: prod.max_delivery_days ?? ""
-        }).toString();
-
-        const productUrl = `product.html?${qp}`;
-
-        const item = document.createElement("div");
-        item.className = "carousel-item";
-        item.style.flex = "0 0 100%";
-        item.style.boxSizing = "border-box";
-        item.style.border = "1px solid #333";
-        item.style.borderRadius = "12px";
-        item.style.overflow = "hidden";
-        item.style.margin = "0 5px";
-
-        item.innerHTML = `
-          <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
-            <img src="${prod.image}" alt="${prod.title}" style="width:100%;height:auto;border-bottom:1px solid #222;">
-            <div style="padding:10px;">
-              <h3>${prod.title}</h3>
-              <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
-              <p style="color:#999;font-size:0.9rem;">Delivery: ${deliveryText}</p>
-            </div>
-          </a>
-        `;
-        track.appendChild(item);
-      });
-
-      // Carousel swipe + auto-advance logic
-      let index = 0;
-      let startX = 0;
-      let currentTranslate = 0;
-      let prevTranslate = 0;
-      let isDragging = false;
-
-      const slideToIndex = (newIndex) => {
-        index = (newIndex + products.length) % products.length; // wrap around
-        currentTranslate = -index * carouselContainer.offsetWidth;
-        track.style.transition = "transform 0.6s ease";
-        track.style.transform = `translateX(${currentTranslate}px)`;
-      };
-
-      const autoSwipe = setInterval(() => {
-        if (!isPaused) slideToIndex(index + 1);
-      }, 5000);
-
-      // Mouse + touch swipe listeners
-      const touchStart = (x) => {
-        startX = x;
-        isDragging = true;
-        track.style.transition = "none";
-        prevTranslate = currentTranslate;
-      };
-
-      const touchMove = (x) => {
-        if (!isDragging) return;
-        const delta = x - startX;
-        currentTranslate = prevTranslate + delta;
-        track.style.transform = `translateX(${currentTranslate}px)`;
-      };
-
-      const touchEnd = (x) => {
-        isDragging = false;
-        const movedBy = x - startX;
-        if (Math.abs(movedBy) > carouselContainer.offsetWidth / 4) {
-          slideToIndex(index + (movedBy < 0 ? 1 : -1));
-        } else {
-          slideToIndex(index);
-        }
-      };
-
-      track.addEventListener("mousedown", e => touchStart(e.pageX));
-      track.addEventListener("mousemove", e => touchMove(e.pageX));
-      track.addEventListener("mouseup", e => touchEnd(e.pageX));
-      track.addEventListener("mouseleave", e => { if (isDragging) touchEnd(e.pageX); });
-
-      track.addEventListener("touchstart", e => touchStart(e.touches[0].clientX));
-      track.addEventListener("touchmove", e => touchMove(e.touches[0].clientX));
-      track.addEventListener("touchend", e => touchEnd(e.changedTouches[0].clientX));
-
-    } catch (err) {
-      console.error("Carousel load error:", err);
-      track.innerHTML = `<p>Failed to load featured products.</p>`;
-    }
-  }
-  // Run automatically
-  loadFeaturedProducts();
-*/
-  </script>
-  
   <script>
     // Modal logic
     const contactLink = document.getElementById('contactLink');
