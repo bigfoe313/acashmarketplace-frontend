@@ -134,32 +134,44 @@ h1 {
   padding: 0 10px;
 }
 
-    .product-card {
-      background: white;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid #eee;
-      box-shadow: var(--card-shadow);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+.product-card {
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column; /* Ensures content is stacked vertically */
+  justify-content: space-between; /* Distributes space between elements */
+  height: 100%; /* Ensure it stretches to the available height */
+  padding-bottom: 15px; /* Add some padding at the bottom */
+}
 
-    .product-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-    }
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
 
-    .product-card img {
-      max-width: 100%;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
+.product-card img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
 
-    .product-card h3 {
-      font-size: 15px;
-      margin: 8px 0;
-      height: 40px;
-      overflow: hidden;
-    }
+.product-card h3 {
+  font-size: 15px;
+  margin: 8px 0;
+  height: auto; /* Allow title to grow dynamically */
+  overflow: hidden;
+  flex-grow: 1; /* Allows title to grow */
+}
+
+.product-card p {
+  font-weight: bold;
+  margin: 6px 0;
+  color: #333;
+}
 
 .price-info p {
   text-align: right;
@@ -283,12 +295,6 @@ h1 {
     max-height: 300px;
     margin: 8px auto 0 auto;
   }
-
-    .product-card p {
-      font-weight: bold;
-      margin: 6px 0;
-      color: #333;
-    }
 
 }
 
