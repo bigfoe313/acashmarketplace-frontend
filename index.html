@@ -293,80 +293,37 @@
       text-decoration: underline;
     }
 
-  /* ===========================
-     Featured Products Container
-  =========================== */
-  #featuredContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin: 20px;
-    padding: 0 10px;
-  }
-  
-  /* ===========================
-     Featured Product Cards
-  =========================== */
-  #featuredContainer .product-card {
-    background: white; /* same as search cards */
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #eee;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  
-  #featuredContainer .product-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  }
-  
-  #featuredContainer .product-card img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-bottom: 8px;
-  }
-  
-  #featuredContainer .product-card h3 {
-    font-size: 14px;
-    margin: 6px 0;
-    height: 40px;
-    overflow: hidden;
-  }
-  
-  #featuredContainer .product-card p {
-    font-weight: bold;
-    margin: 4px 0;
-    color: #333;
-    font-size: 0.95rem;
-  }
-  
-  #featuredContainer .product-card a {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-  
-  /* ===========================
-     Responsive Adjustments
-  =========================== */
-  @media (max-width: 600px) {
-    #featuredContainer {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin: 15px;
+    .featured-products-section {
+      margin: 25px auto;
+      max-width: 1200px;
+      text-align: center;
     }
-  
-    #featuredContainer .product-card h3 {
-      font-size: 13px;
-      height: auto;
+    
+    .featured-products-section h2 {
+      font-size: 1.8rem;
+      color: #0070f3;
+      margin-bottom: 15px;
     }
-  
-    #featuredContainer .product-card p {
-      font-size: 0.9rem;
+    
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      padding: 0 15px;
     }
-  }
+    
+    .featured-grid .product-card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    
+    .featured-grid .product-card:hover {
+      transform: translateY(-4px);
+    }
 
   </style>
 </head>
