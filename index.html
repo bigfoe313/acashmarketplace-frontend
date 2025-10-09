@@ -140,17 +140,20 @@
 
     .product-card {
       background: white;
-      padding: 12px 12px 20px; /* Keep bottom padding */
+      padding: 12px;
       border-radius: 12px;
       border: 1px solid #eee;
       box-shadow: var(--card-shadow);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      min-height: 240px; /* Ensure the card has a minimum height */
+      display: flex;
+      flex-direction: column; /* Allows the card to grow vertically */
+      justify-content: space-between; /* Distributes space between elements */
+      height: 100%; /* Ensure it stretches to the available height */
     }
     
     .product-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     }
     
     .product-card img {
@@ -162,8 +165,9 @@
     .product-card h3 {
       font-size: 15px;
       margin: 8px 0;
-      height: 40px;
+      height: auto; /* Remove fixed height */
       overflow: hidden;
+      flex-grow: 1; /* Allow title to grow */
     }
     
     .product-card p {
