@@ -287,29 +287,6 @@ h1 {
   }
 }
 
-/* Carousel container */
- .carousel-container {
-   width: 100%;
-   max-width: 400px;
-   margin: 20px auto;
-   overflow: hidden;
-   position: relative;
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   text-align: center;
- }
-
-/* Carousel track (for smooth sliding) */
-.carousel-track {
-  display: flex;
-  transition: transform 0.6s ease;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-/* Each carousel card */
 .carousel-container {
   display: flex;
   justify-content: center;
@@ -319,29 +296,10 @@ h1 {
   text-align: center;
 }
 
-/* Each carousel card fills the container but leaves a little padding */
-.carousel-card {
-  flex: 0 0 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-/* Ensure images fit perfectly without overflowing */
 .carousel-card img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 300px; /* Keeps image proportionate in 400px container */
-  object-fit: cover;
+  max-width: 100%;
   border-radius: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .carousel-card h3 {
