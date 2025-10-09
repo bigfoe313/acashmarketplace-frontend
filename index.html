@@ -371,7 +371,7 @@
   <script>
     async function loadFeaturedProducts() {
       const container = document.getElementById("featuredContainer");
-      container.innerHTML = "<p>Loading featured products...</p>";
+      container.innerHTML = "<p></p>";
     
       const API_BASE =
         window.location.hostname === "localhost"
@@ -386,6 +386,26 @@
         "Mobile Phones"
       ];
     
+      // Helper function to check if the image is square and has valid dimensions
+      function isValidImage(imageUrl) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = imageUrl;
+          
+          // Wait for the image to load and check its natural size
+          img.onload = () => {
+            // Check if the image is square (width === height) and its dimensions are valid
+            if (img.naturalWidth === img.naturalHeight && img.naturalWidth > 10) {
+              resolve(true); // Valid square image
+            } else {
+              resolve(false); // Invalid image (likely rectangular or too small)
+            }
+          };
+    
+          img.onerror = () => resolve(false); // If there's an error loading the image
+        });
+      }
+    
       try {
         const responses = await Promise.all(
           searchTerms.map(term =>
@@ -399,20 +419,20 @@
         for (const data of responses) {
           if (!data || !Array.isArray(data.results)) continue;
     
-          // ✅ Filter: Only include products with valid delivery days and images that have non-empty alt text
-          const valid = data.results.filter(p => {
+          // Filter out products with invalid images (likely rectangular or too small)
+          const valid = await Promise.all(data.results.map(async (p) => {
             const hasValidDelivery =
               (p.min_delivery_days && p.min_delivery_days !== "N/A") ||
               (p.max_delivery_days && p.max_delivery_days !== "N/A");
     
-            const hasValidImage = p.image && p.image.trim() !== "" && p.alt !== "";
+            // Check if image is valid (square and valid size)
+            const isValidImageCheck = await isValidImage(p.image);
     
-            return p.title && p.price && hasValidDelivery && hasValidImage;
-          });
+            return p.title && p.price && hasValidDelivery && isValidImageCheck;
+          }));
     
-          if (valid.length > 0) {
-            products.push(...valid.slice(0, 2));
-          }
+          // Add only the valid products
+          products.push(...data.results.filter((_, index) => valid[index]));
         }
     
         if (products.length === 0) {
