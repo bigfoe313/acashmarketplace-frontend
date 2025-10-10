@@ -137,7 +137,7 @@ h1 {
 
 .product-card {
   background: white;
-  padding: 12px 12px 20px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid #eee;
   box-shadow: var(--card-shadow);
