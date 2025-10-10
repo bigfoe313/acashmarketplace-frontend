@@ -146,6 +146,7 @@ h1 {
   flex-direction: column; /* Allows the card to grow vertically */
   justify-content: space-between; /* Distributes space between elements */
   height: 100%; /* Ensure it stretches to the available height */
+   margin: 20px;
 }
 
 .product-card:hover {
