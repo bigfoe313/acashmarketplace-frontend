@@ -126,13 +126,14 @@ h1 {
 /* ===========================
    Product Grid & Cards
 =========================== */
-#resultsContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin: 20px;
-  padding: 0 10px;
-}
+ #resultsContainer {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+   gap: 18px;
+   margin: 25px;
+   padding: 0 10px;
+   animation: fadeIn 0.4s ease;
+ }
 
 .product-card {
   background: white;
