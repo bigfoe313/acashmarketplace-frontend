@@ -54,6 +54,7 @@
       padding: 10px 12px;
       margin-top: 8px;
       transition: background-color 0.2s ease;
+      cursor: pointer;
     }
     .metamask-btn:hover {
       background-color: #218838;
@@ -68,6 +69,8 @@
     .mm-price-row { display: flex; align-items: center; gap: 6px; }
     .mm-line2 { font-size: 1rem; font-weight: bold; color: white; }
     .metamask-logo { width: 20px; height: 20px; }
+    .or-divider { display:flex; align-items:center; justify-content:center; margin-top:8px; }
+    .or-divider div { flex:1;border-bottom:1px solid #ccc; margin:0 8px; }
   </style>
 </head>
 <body>
@@ -84,67 +87,58 @@ const product = {
   title: decodeURIComponent(urlParams.get("title") || ""),
   price: parseFloat(urlParams.get("price") || 0),
   shipping: parseFloat(urlParams.get("shipping") || 0),
-  image: decodeURIComponent(urlParams.get("image") || ""), // ✅ no proxying here
+  image: decodeURIComponent(urlParams.get("image") || ""), // ✅ may already be proxied
   skuId: urlParams.get("skuId") || "",
   minDelivery: urlParams.get("minDelivery") || "N/A",
   maxDelivery: urlParams.get("maxDelivery") || "N/A"
 };
 
-  const container = document.getElementById("productContainer");
+const container = document.getElementById("productContainer");
 
-  // Compute total & discounted price
-  const total = (product.price + product.shipping).toFixed(2);
-  const discountPrice = (product.price * 0.9).toFixed(2);
+// Compute total & discounted price
+const total = (product.price + product.shipping).toFixed(2);
+const discountPrice = (product.price * 0.9).toFixed(2);
 
-  let delivery;
-  if(product.minDelivery !== "N/A" && product.maxDelivery !== "N/A") delivery = `${product.minDelivery}-${product.maxDelivery} Days`;
-  else if(product.minDelivery !== "N/A") delivery = `${product.minDelivery} Days`;
-  else if(product.maxDelivery !== "N/A") delivery = `${product.maxDelivery} Days`;
-  else delivery = "N/A";
+let delivery;
+if (product.minDelivery !== "N/A" && product.maxDelivery !== "N/A")
+  delivery = `${product.minDelivery}-${product.maxDelivery} Days`;
+else if (product.minDelivery !== "N/A")
+  delivery = `${product.minDelivery} Days`;
+else if (product.maxDelivery !== "N/A")
+  delivery = `${product.maxDelivery} Days`;
+else delivery = "N/A";
 
-  // Build Metamask URL for 10% discount
-  const metamaskUrl = `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
-    `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${product.price.toFixed(2)} A-CASH plus ${product.shipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
-    `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${product.title}) - transactionHash`)}` +
-    `&cartTitle=${encodeURIComponent(product.title)}` +
-    `&cartProductId=${encodeURIComponent(product.id)}` +
-    `&cartImage=${encodeURIComponent(product.image)}` +
-    `&span1=${encodeURIComponent(discountPrice + " A-CASH")}` +
-    `&span2=${encodeURIComponent(product.shipping.toFixed(2) + " A-CASH")}` +
-    `&span3=${encodeURIComponent(delivery)}` +
-    `&span4=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2) + " A-CASH")}` +
-    `&total=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2))}`;
-
-  container.innerHTML = `
-    <div class="product-card">
-      <img src="${product.image}" alt="${product.title}" />
-      <h3>${product.title}</h3>
-      <div class="price-info">
-        <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
-        <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
-        <p>Total: <strong>$${total}</strong></p>
-        <p>Delivery: ${delivery}</p>
-      </div>
-      <button class="buy-now-btn">Buy Now</button>
-
-      <div class="or-divider">
-        <div></div><span>OR</span><div></div>
-      </div>
-
-      <a href="${metamaskUrl}" target="_blank" class="metamask-btn">
-        <div class="mm-text">
-          <span class="mm-line1">Buy with 10% Discount</span>
-          <div class="mm-price-row">
-            <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
-            <img class="metamask-logo" src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024" alt="Metamask">
-          </div>
-        </div>
-      </a>
+// Render product card
+container.innerHTML = `
+  <div class="product-card">
+    <img id="productImage" src="${product.image}" alt="${product.title}" />
+    <h3 id="productTitle">${product.title}</h3>
+    <div class="price-info">
+      <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
+      <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
+      <p>Total: <strong>$${total}</strong></p>
+      <p>Delivery: ${delivery}</p>
     </div>
-  `;
+    <button class="buy-now-btn" id="buyNowBtn">Buy Now</button>
 
-// Buy Now button sends to Stripe
-container.querySelector(".buy-now-btn").addEventListener("click", async () => {
+    <div class="or-divider">
+      <div></div><span>OR</span><div></div>
+    </div>
+
+    <a href="#" id="metamaskBtn" class="metamask-btn" target="_blank" rel="noopener">
+      <div class="mm-text">
+        <span class="mm-line1">Buy with 10% Discount</span>
+        <div class="mm-price-row">
+          <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
+          <img class="metamask-logo" src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024" alt="Metamask">
+        </div>
+      </div>
+    </a>
+  </div>
+`;
+
+// Buy Now button sends to Stripe (unchanged)
+document.getElementById("buyNowBtn").addEventListener("click", async () => {
   try {
     const response = await fetch(`${API_BASE}/api/cart/add`, { // ✅ fixed
       method: "POST",
@@ -153,7 +147,7 @@ container.querySelector(".buy-now-btn").addEventListener("click", async () => {
         title: product.title,
         price: product.price,
         shipping_fee: product.shipping,
-        image: product.image, // ✅ already proxied by renderProducts()
+        image: product.image, // Stripe flow expects sku image if skuId provided server-side
         productId: product.id,
         skuId: product.skuId
       })
@@ -163,6 +157,85 @@ container.querySelector(".buy-now-btn").addEventListener("click", async () => {
     else alert("Failed to start checkout session.");
   } catch (err) {
     console.error("Stripe Checkout Error:", err);
+    alert("Stripe checkout failed. See console.");
+  }
+});
+
+/**
+ * MetaMask checkout handler:
+ * - POST to /api/metamask-checkout so backend can create a cart (and include sku image/color)
+ * - use returned cart data to construct MetaMask deep link (so image/color match Stripe)
+ */
+document.getElementById("metamaskBtn").addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  // Try to create MetaMask cart on backend which should return cart object (image/color/price/etc)
+  try {
+    const resp = await fetch(`${API_BASE}/api/metamask-checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: product.title,
+        price: product.price,
+        shipping_fee: product.shipping,
+        image: product.image,    // backend can pick skuImage when skuId provided
+        productId: product.id,
+        skuId: product.skuId
+      })
+    });
+
+    const json = await resp.json();
+
+    // If backend returned a cart object, use it; otherwise fallback to building URL locally
+    const cart = json && json.cart ? json.cart : null;
+
+    if (cart) {
+      // Build MetaMask deep-link using returned cart (ensures same image/color)
+      const cartImage = cart.image || product.image || "";
+      const cartTitle = cart.title || product.title || "";
+      const cartPrice = (cart.price !== undefined ? Number(cart.price) : product.price);
+      const cartShipping = (cart.shipping !== undefined ? Number(cart.shipping) : product.shipping);
+      const cartTotal = (cart.total !== undefined ? cart.total : (cartPrice + cartShipping));
+      const cartDiscountTotal = cart.discountTotal !== undefined ? cart.discountTotal : (cartPrice * 0.9);
+      const cartColor = cart.color || "Default";
+
+      const mmUrl = 
+        `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
+        `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${cartPrice.toFixed(2)} A-CASH plus ${cartShipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
+        `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${cartTitle}) - transactionHash`)}` +
+        `&cartTitle=${encodeURIComponent(cartTitle)}` +
+        `&cartProductId=${encodeURIComponent(cart.productId || product.id)}` +
+        `&cartColor=${encodeURIComponent(cartColor)}` +
+        `&cartImage=${encodeURIComponent(cartImage)}` +
+        `&span1=${encodeURIComponent((cartDiscountTotal).toString() + " A-CASH")}` +
+        `&span2=${encodeURIComponent((cartShipping).toFixed(2) + " A-CASH")}` +
+        `&span3=${encodeURIComponent(delivery)}` +
+        `&span4=${encodeURIComponent((Number(cartDiscountTotal) + Number(cartShipping)).toFixed(2) + " A-CASH")}` +
+        `&total=${encodeURIComponent((Number(cartDiscountTotal) + Number(cartShipping)).toFixed(2))}`;
+
+      window.open(mmUrl, "_blank");
+      return;
+    }
+
+    // fallback: server did not return cart (or returned unexpected payload) — build URL locally
+    const fallback_mmUrl = 
+      `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
+      `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${product.price.toFixed(2)} A-CASH plus ${product.shipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
+      `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${product.title}) - transactionHash`)}` +
+      `&cartTitle=${encodeURIComponent(product.title)}` +
+      `&cartProductId=${encodeURIComponent(product.id)}` +
+      `&cartImage=${encodeURIComponent(product.image)}` +
+      `&span1=${encodeURIComponent(discountPrice + " A-CASH")}` +
+      `&span2=${encodeURIComponent(product.shipping.toFixed(2) + " A-CASH")}` +
+      `&span3=${encodeURIComponent(delivery)}` +
+      `&span4=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2) + " A-CASH")}` +
+      `&total=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2))}`;
+
+    window.open(fallback_mmUrl, "_blank");
+
+  } catch (err) {
+    console.error("MetaMask checkout error:", err);
+    alert("MetaMask checkout failed. See console.");
   }
 });
 </script>
