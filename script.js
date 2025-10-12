@@ -403,7 +403,7 @@ async function renderProducts(products) {
           alert("MetaMask checkout failed.");
         }
       });
-
+    });
 };
 
   window.fetchProducts = fetchProducts;
