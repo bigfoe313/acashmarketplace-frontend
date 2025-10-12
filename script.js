@@ -323,25 +323,30 @@ async function renderProducts(products) {
       // ---------------------------
       // MetaMask Checkout
       // ---------------------------
-      const metamaskBtn = card.querySelector(".metamask-btn");
       metamaskBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
-          const cartData = await getMetaMaskCartData(product); // your existing function
-
+          // --- Ensure correct color and image are used ---
+          const enrichedProduct = {
+            ...product,
+            image: product.skuImage || product.image,  // use SKU-specific image if available
+            color: product.color || "Default"          // pass color if known
+          };
+      
+          const cartData = await getMetaMaskCartData(enrichedProduct);
+      
           if (!cartData) {
             alert("Failed to create MetaMask cart");
             return;
           }
-
-          // Wrap the image URL through your backend proxy
-          const proxiedImage = `${API_BASE}/api/image-proxy?url=${encodeURIComponent(cartData.image)}`;
-
-          // Build the cart object for MetaMask checkout
+      
+          // --- Wrap the image URL through proxy ---
+          const proxiedImage = `${API_BASE}/api/image-proxy?url=${encodeURIComponent(enrichedProduct.image)}`;
+      
           const cart = {
             ...cartData,
-            image: proxiedImage, // ⚡ Important: use proxied URL
-            color: cartData.color || "Default",
+            image: proxiedImage,
+            color: enrichedProduct.color,
             total: cartData.total,
             discountTotal: cartData.discountTotal,
             price: cartData.price,
@@ -349,15 +354,15 @@ async function renderProducts(products) {
             title: cartData.title,
             productId: cartData.productId,
           };
-
-          // Construct MetaMask URL
-          const mmUrl = buildMetaMaskUrl(cart, product.min_delivery_days && product.max_delivery_days
-            ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
-            : (product.min_delivery_days || product.max_delivery_days || "N/A")
+      
+          const mmUrl = buildMetaMaskUrl(
+            cart,
+            product.min_delivery_days && product.max_delivery_days
+              ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
+              : (product.min_delivery_days || product.max_delivery_days || "N/A")
           );
-
+      
           window.open(mmUrl, "_blank");
-
         } catch (err) {
           console.error("MetaMask Checkout Error:", err);
           alert("MetaMask checkout failed.");
