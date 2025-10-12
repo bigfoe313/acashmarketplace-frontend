@@ -323,25 +323,66 @@ async function renderProducts(products) {
       // ---------------------------
       // MetaMask Checkout
       // ---------------------------
+      // --- Replace the existing metamaskBtn handler with this ---
       const metamaskBtn = card.querySelector(".metamask-btn");
       metamaskBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
-          const cartData = await getMetaMaskCartData(product); // your existing function
-
+          // Try to fetch SKU details first (gives skuImage + color)
+          let skuImage = product.image || "";
+          let skuColor = product.color || "";
+      
+          if (product.sku_id) {
+            try {
+              const skuResp = await fetch(`${API_BASE}/api/sku-details`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productId: product.id, skuId: product.sku_id })
+              });
+              if (skuResp && skuResp.ok) {
+                const skuJson = await skuResp.json();
+                if (skuJson) {
+                  // prefer skuImage/color if returned
+                  skuImage = skuJson.skuImage || skuImage;
+                  skuColor = skuJson.color || skuColor;
+                }
+              }
+            } catch (err) {
+              // ignore sku-details failure and continue with defaults
+              console.warn("Failed to fetch SKU details (falling back):", err);
+            }
+          }
+      
+          // Now create the MetaMask cart using skuImage and skuColor
+          const mmResp = await fetch(`${API_BASE}/api/metamask-checkout`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: product.title,
+              price: product.price,
+              shipping_fee: product.shipping_fee,
+              image: skuImage,      // IMPORTANT: use SKU-specific image
+              productId: product.id,
+              skuId: product.sku_id,
+              color: skuColor       // include color if backend accepts it
+            }),
+          });
+      
+          const mmJson = await mmResp.json();
+          const cartData = mmJson && mmJson.cart ? mmJson.cart : null;
+      
           if (!cartData) {
             alert("Failed to create MetaMask cart");
             return;
           }
-
-          // Wrap the image URL through your backend proxy
-          const proxiedImage = `${API_BASE}/api/image-proxy?url=${encodeURIComponent(cartData.image)}`;
-
-          // Build the cart object for MetaMask checkout
+      
+          // Use proxied skuImage for the MetaMask URL (so images load reliably)
+          const proxiedImage = `${API_BASE}/api/image-proxy?url=${encodeURIComponent(skuImage || cartData.image || "")}`;
+      
           const cart = {
             ...cartData,
-            image: proxiedImage, // ⚡ Important: use proxied URL
-            color: cartData.color || "Default",
+            image: proxiedImage,
+            color: skuColor || (cartData.color || "Default"),
             total: cartData.total,
             discountTotal: cartData.discountTotal,
             price: cartData.price,
@@ -349,21 +390,20 @@ async function renderProducts(products) {
             title: cartData.title,
             productId: cartData.productId,
           };
-
-          // Construct MetaMask URL
-          const mmUrl = buildMetaMaskUrl(cart, product.min_delivery_days && product.max_delivery_days
+      
+          const deliveryStr = (product.min_delivery_days && product.max_delivery_days)
             ? `${product.min_delivery_days}-${product.max_delivery_days} Days`
-            : (product.min_delivery_days || product.max_delivery_days || "N/A")
-          );
-
+            : (product.min_delivery_days || product.max_delivery_days || "N/A");
+      
+          const mmUrl = buildMetaMaskUrl(cart, deliveryStr);
           window.open(mmUrl, "_blank");
-
+      
         } catch (err) {
-          console.error("MetaMask Checkout Error:", err);
+          console.error("MetaMask Checkout Error (featured product):", err);
           alert("MetaMask checkout failed.");
         }
       });
-    });
+
 }
 
   window.fetchProducts = fetchProducts;
