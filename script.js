@@ -404,7 +404,7 @@ async function renderProducts(products) {
         }
       });
 
-}
+};
 
   window.fetchProducts = fetchProducts;
 
