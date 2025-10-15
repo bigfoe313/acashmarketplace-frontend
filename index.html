@@ -1252,7 +1252,7 @@
               <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
                 <img src="${prod.image || 'default.png'}" alt="${prod.alt || prod.title}">
                 <h3>${prod.title}</h3>
-                <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
+                <p style="font-size: 1.0rem;">$${parseFloat(prod.price || 0).toFixed(2)}</p>
                 <i class="fas fa-shipping-fast"></i> ${deliveryText}
               </a>
           `;
