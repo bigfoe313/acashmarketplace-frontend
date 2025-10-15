@@ -589,13 +589,21 @@
     .footer-column h3:after {
       content: '';
       position: absolute;
-      left: 0;
-      bottom: 0;
+      /* Old 'left: 0' removed */
+      
+      /* 1. Position the start (left edge) at the center of the parent */
+      left: 50%; 
+      
+      bottom: 0; 
       width: 40px;
       height: 3px;
       background: var(--primary);
+      
+      /* 2. Shift the element back by half of its own width (20px) 
+            to achieve perfect centering */
+      transform: translateX(-50%); 
     }
-
+    
     .footer-links {
       list-style: none;
     }
