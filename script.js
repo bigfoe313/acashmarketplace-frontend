@@ -226,7 +226,7 @@ async function renderProducts(products) {
       const price = parseFloat(product.price || "0");
       const shippingFee = product.shipping_fee && product.shipping_fee !== "N/A" ? parseFloat(product.shipping_fee) : 0;
       const total = (price + shippingFee).toFixed(2);
-      const image = proxyImage(product.skuImage); // ✅ prefer skuImage if available
+      const image = proxyImage(product.image); // ✅ proxy image
 
       const min = product.min_delivery_days;
       const max = product.max_delivery_days;
