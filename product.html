@@ -169,70 +169,48 @@ document.getElementById("buyNowBtn").addEventListener("click", async () => {
 document.getElementById("metamaskBtn").addEventListener("click", async (e) => {
   e.preventDefault();
 
-  // Try to create MetaMask cart on backend which should return cart object (image/color/price/etc)
   try {
-    const resp = await fetch(`${API_BASE}/api/metamask-checkout`, {
+    // ✅ Step 1: Ask the backend (same as Stripe) for the correct SKU image
+    const imgResponse = await fetch(`${API_BASE}/api/cart/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: product.title,
         price: product.price,
         shipping_fee: product.shipping,
-        image: product.image,    // backend can pick skuImage when skuId provided
+        image: product.image, // backend replaces this with SKU image if needed
         productId: product.id,
         skuId: product.skuId
       })
     });
 
-    const json = await resp.json();
+    const imgData = await imgResponse.json();
+    const skuImage = imgData.image || product.image;
 
-    // If backend returned a cart object, use it; otherwise fallback to building URL locally
-    const cart = json && json.cart ? json.cart : null;
+    // ✅ Step 2: Build the MetaMask deep link using the same image
+    const discountPrice = (product.price * 0.9).toFixed(2);
+    const total = (parseFloat(discountPrice) + product.shipping).toFixed(2);
 
-    if (cart) {
-      // Build MetaMask deep-link using returned cart (ensures same image/color)
-      const cartImage = cart.image || product.image || "";
-      const cartTitle = cart.title || product.title || "";
-      const cartPrice = (cart.price !== undefined ? Number(cart.price) : product.price);
-      const cartShipping = (cart.shipping !== undefined ? Number(cart.shipping) : product.shipping);
-      const cartTotal = (cart.total !== undefined ? cart.total : (cartPrice + cartShipping));
-      const cartDiscountTotal = cart.discountTotal !== undefined ? cart.discountTotal : (cartPrice * 0.9);
-      const cartColor = cart.color || "Default";
-
-      const mmUrl = 
-        `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
-        `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${cartPrice.toFixed(2)} A-CASH plus ${cartShipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
-        `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${cartTitle}) - transactionHash`)}` +
-        `&cartTitle=${encodeURIComponent(cartTitle)}` +
-        `&cartProductId=${encodeURIComponent(cart.productId || product.id)}` +
-        `&cartColor=${encodeURIComponent(cartColor)}` +
-        `&cartImage=${encodeURIComponent(cartImage)}` +
-        `&span1=${encodeURIComponent((cartDiscountTotal).toString() + " A-CASH")}` +
-        `&span2=${encodeURIComponent((cartShipping).toFixed(2) + " A-CASH")}` +
-        `&span3=${encodeURIComponent(delivery)}` +
-        `&span4=${encodeURIComponent((Number(cartDiscountTotal) + Number(cartShipping)).toFixed(2) + " A-CASH")}` +
-        `&total=${encodeURIComponent((Number(cartDiscountTotal) + Number(cartShipping)).toFixed(2))}`;
-
-      window.open(mmUrl, "_blank");
-      return;
-    }
-
-    // fallback: server did not return cart (or returned unexpected payload) — build URL locally
-    const fallback_mmUrl = 
+    const mmUrl =
       `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
-      `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${product.price.toFixed(2)} A-CASH plus ${product.shipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
-      `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${product.title}) - transactionHash`)}` +
+      `_autoresponse=${encodeURIComponent(
+        `Thank you for shopping with us. Your order (${product.price.toFixed(2)} A-CASH plus ${product.shipping.toFixed(
+          2
+        )} A-CASH shipping cost) has been received.`
+      )}` +
+      `&_subject=${encodeURIComponent(
+        `A-CASH Marketplace order confirmation (${product.title}) - transactionHash`
+      )}` +
       `&cartTitle=${encodeURIComponent(product.title)}` +
       `&cartProductId=${encodeURIComponent(product.id)}` +
-      `&cartImage=${encodeURIComponent(product.image)}` +
+      `&cartImage=${encodeURIComponent(skuImage)}` + // ✅ use correct SKU image here
       `&span1=${encodeURIComponent(discountPrice + " A-CASH")}` +
       `&span2=${encodeURIComponent(product.shipping.toFixed(2) + " A-CASH")}` +
       `&span3=${encodeURIComponent(delivery)}` +
-      `&span4=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2) + " A-CASH")}` +
-      `&total=${encodeURIComponent((parseFloat(discountPrice) + product.shipping).toFixed(2))}`;
+      `&span4=${encodeURIComponent(total + " A-CASH")}` +
+      `&total=${encodeURIComponent(total)}`;
 
-    window.open(fallback_mmUrl, "_blank");
-
+    window.open(mmUrl, "_blank");
   } catch (err) {
     console.error("MetaMask checkout error:", err);
     alert("MetaMask checkout failed. See console.");
