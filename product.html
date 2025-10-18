@@ -104,9 +104,6 @@ const delivery = (product.minDelivery !== "N/A" && product.maxDelivery !== "N/A"
 // Helper to proxy images
 const proxyImage = (url) => url ? `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}` : "";
 
-// Render initial placeholder card
-container.innerHTML = `<div class="product-card"><p>Loading product...</p></div>`;
-
 // Fetch SKU image from backend before rendering
 (async () => {
   try {
