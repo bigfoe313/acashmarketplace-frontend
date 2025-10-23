@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------------------
   const categoryTree = [
     { name: "Consumer Electronics", children: ["Mobile Phone","Earphones & Headphones","Smartwatch","Tablet PC"] },
-    { name: "Computer & Office", children: ["Laptop Computer","Computer Keyboards","Computer Mouse","Computer Storage Devices"] },
+    { name: "Computer & Office", children: ["Laptops","Computer Keyboards","Computer Mouse","Computer Storage Devices"] },
     { name: "Home & Garden", children: ["Kitchen Tools","Home Decor","Lighting","Storage & Organization"] },
     { name: "Beauty & Health", children: ["Skin Care","Women's Makeup","Hair Care Products","Health Monitoring Devices"] },
     { name: "Sports & Entertainment", children: ["Cycling","Camping & Hiking","Fitness Equipment","Musical Instruments"] },
@@ -376,7 +376,7 @@ async function initCarousel() {
   const searchTerms = [
     "Smart Glasses",
     "Smartwatch",
-    "Laptop Computer",
+    "Laptops",
     "Earphones & Headphones",
     "Mobile Phone"
   ];
