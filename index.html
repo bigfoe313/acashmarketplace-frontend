@@ -1001,7 +1001,7 @@
     <div class="modal-content">
       <span class="close-btn" id="closeModal">&times;</span>
       <h2 style="margin-bottom: 20px;">Contact Us</h2>
-      <iframe class="contact-form" src="https://formsubmit.co/el/duzoha?_captcha=false" style="width: 100%; height: 400px; border: none; border-radius: 8px;"></iframe>
+      <!-- <iframe class="contact-form" src="https://formsubmit.co/el/duzoha?_captcha=false" style="width: 100%; height: 400px; border: none; border-radius: 8px;"></iframe> -->
     </div>
   </div>
 
@@ -1421,21 +1421,5 @@
       });
     });
   </script>
-
-  <!-- Keep this at the bottom of <body>, after all your JS -->
-  <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const contactModal = document.getElementById('contactModal');
-    const iframe = document.createElement('iframe');
-    iframe.className = 'contact-form';
-    iframe.src = 'https://formsubmit.co/el/duzoha?_captcha=false';
-    iframe.style.width = '100%';
-    iframe.style.height = '400px';
-    iframe.style.border = 'none';
-    iframe.style.borderRadius = '8px';
-    contactModal.querySelector('.modal-content').appendChild(iframe);
-  });
-  </script>
-  
 </body>
 </html>
