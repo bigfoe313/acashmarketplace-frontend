@@ -1421,5 +1421,17 @@
       });
     });
   </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const ua = navigator.userAgent.toLowerCase();
+      const isChrome = ua.includes("chrome") && !ua.includes("edg") && !ua.includes("opr");
+  
+      if (!isChrome) {
+        alert("This site is optimized for Google Chrome. For full website functionality, please open acashmarketplace.com using the Chrome browser.");
+      }
+    });
+  </script>
+  
 </body>
 </html>
