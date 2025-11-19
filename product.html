@@ -212,7 +212,7 @@ const proxyImage = (url) => url ? `${API_BASE}/api/image-proxy?url=${encodeURICo
 
         const mmUrl = 
           `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
-          `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${cartPrice.toFixed(2)} A-CASH plus ${cartShipping.toFixed(2)} A-CASH shipping cost) has been received.`)}` +
+          `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${cartPrice.toFixed(2)} A-CASH plus ${cartShipping.toFixed(2)} A-CASH shipping cost plus applicable sales tax) has been received.`)}` +
           `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${cart.title || product.title}) - transactionHash`)}` +
           `&cartTitle=${encodeURIComponent(cart.title || product.title)}` +
           `&cartProductId=${encodeURIComponent(cart.productId || product.id)}` +
