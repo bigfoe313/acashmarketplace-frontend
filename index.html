@@ -1344,7 +1344,11 @@
           }));
     
           // Add only the valid products
-          products.push(...data.results.filter((_, index) => valid[index]));
+          const validProducts = data.results
+            .filter((_, index) => valid[index])
+            .slice(0, 4); // <= limit to 4 per search term
+          
+          products.push(...validProducts);
         }
     
         if (products.length === 0) {
