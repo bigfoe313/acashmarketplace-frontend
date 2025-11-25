@@ -1347,7 +1347,7 @@
           const validProducts = data.results
             .filter((_, index) => valid[index])
             .sort(() => Math.random() - 0.5)   // shuffle
-            .slice(0, 4); // <= limit to 4 per search term
+            .slice(0, 2); // <= limit to 2 per search term
           
           products.push(...validProducts);
         }
