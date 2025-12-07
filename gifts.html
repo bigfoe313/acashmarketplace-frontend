@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gifts Under $25</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    .product-card {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.12);
+      display: inline-block;
+      max-width: 300px;
+      margin: 10px;
+      text-align: center;
+    }
+    .product-card img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .price-info p {
+      margin: 4px 0;
+    }
+    .buy-now-btn {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .buy-now-btn:hover {
+      background-color: #005bb5;
+    }
+    label, select {
+      margin-top: 8px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎄 25 Gifts Under $25</h1>
+<div id="productContainer"></div>
+
+<script>
+const API_BASE = "https://acashmarketplace-backend.onrender.com";
+
+// ---------------------------
+// UNIVERSAL RETRY WRAPPER
+// ---------------------------
+async function fetchWithRetry(url, options = {}, retries = 4, delay = 300) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const resp = await fetch(url, options);
+
+      if (!resp.ok) {
+        console.warn(
+          `Retry ${attempt}/${retries} — ${url} — STATUS: ${resp.status}`
+        );
+
+        if (attempt === retries) return resp;
+        await new Promise(res => setTimeout(res, delay * attempt));
+        continue;
+      }
+
+      return resp; // success
+    } catch (err) {
+      console.warn(
+        `Retry ${attempt}/${retries} — ${url} — NETWORK ERROR`,
+        err
+      );
+
+      if (attempt === retries) throw err;
+      await new Promise(res => setTimeout(res, delay * attempt));
+    }
+  }
+}
+
+
+// ----------------------------------------
+// IMAGE PROXY
+// ----------------------------------------
+const proxyImage = (url) =>
+  url ? `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}` : "";
+
+
+// ----------------------------------------
+// PRODUCT IDS
+// ----------------------------------------
+const productIDs = [
+  "3256809234163078","3256807692502654","3256808465791943",
+  "3256810259533591","3256810226946922","3256805857021964","3256805735811645",
+  "3256807497474265","3256810223151407","3256808870213627",
+  "3256809240081287","3256808628806476","3256810159541047","3256807298289425",
+  "3256808420028953","3256810219410160","3256804662189336","3256809480057715",
+  "3256810122647123","3256809758658502","3256809735121595","3256808573882577",
+  "3256809428857233","3256809648557042","3256808131651881"
+];
+
+
+// ----------------------------------------
+// TAX RATES
+// ----------------------------------------
+const stateTaxRates = {
+  AL: 4.00, AK: 0.00, AZ: 5.60, AR: 6.50, CA: 7.25, CO: 2.90, CT: 6.35, DE: 0.00,
+  FL: 6.00, GA: 4.00, HI: 4.00, ID: 6.00, IL: 6.25, IN: 7.00, IA: 6.00, KS: 6.50,
+  KY: 6.00, LA: 4.45, ME: 5.50, MD: 6.00, MA: 6.25, MI: 6.00, MN: 6.875, MS: 7.00,
+  MO: 4.225, MT: 0.00, NE: 5.50, NV: 6.85, NH: 0.00, NJ: 6.625, NM: 5.125,
+  NY: 4.00, NC: 4.75, ND: 5.00, OH: 5.75, OK: 4.50, OR: 0.00, PA: 6.00,
+  RI: 7.00, SC: 6.00, SD: 4.50, TN: 7.00, TX: 6.25, UT: 4.85, VT: 6.00,
+  VA: 5.30, WA: 6.50, WV: 6.00, WI: 5.00, WY: 4.00, DC: 6.00
+};
+
+
+// ----------------------------------------
+// FETCH PRODUCT (WITH RETRY)
+// ----------------------------------------
+async function fetchProduct(id) {
+  try {
+    const resp = await fetchWithRetry(`${API_BASE}/api/product?id=${id}`);
+
+    if (!resp.ok) {
+      console.error(`❌ Failed after all retries: product ${id}`);
+      return null;
+    }
+
+    const product = await resp.json();
+    product.price = Number(product.price) || 0;
+    product.shipping = Number(product.shipping) || 0;
+    return product;
+
+  } catch (err) {
+    console.error(`❌ Product ${id} crashed after retries`, err);
+    return null;
+  }
+}
+
+
+// ----------------------------------------
+// LOAD PRODUCTS SEQUENTIALLY (original behavior)
+// ----------------------------------------
+async function loadProducts() {
+  const container = document.getElementById("productContainer");
+  container.innerHTML = "";
+
+  for (const id of productIDs) {
+    const product = await fetchProduct(id);
+    if (!product) continue;
+
+    const total = product.price + product.shipping;
+    if (total >= 50) {
+      console.log(`Skipping product ${id} > $25`);
+      continue;
+    }
+
+    // SKU IMAGE RESOLUTION (with retry)
+    let skuImage = product.image;
+
+    try {
+      const skuResp = await fetchWithRetry(`${API_BASE}/api/metamask-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: product.title,
+          price: product.price,
+          shipping_fee: product.shipping,
+          image: product.image,
+          productId: product.id,
+          skuId: product.skuId || ""
+        })
+      });
+
+      if (skuResp.ok) {
+        const skuJson = await skuResp.json();
+        if (skuJson?.cart?.image) {
+          skuImage = skuJson.cart.image;
+        }
+      } else {
+        console.warn(`❌ SKU resolver failed after retries: ${product.id}`);
+      }
+
+    } catch (err) {
+      console.warn(`❌ SKU resolver crashed for ${product.id}`, err);
+    }
+
+    const proxied = proxyImage(skuImage);
+
+    const totalPrice = (product.price + product.shipping).toFixed(2);
+    const delivery =
+      product.minDelivery && product.maxDelivery
+        ? `${product.minDelivery}–${product.maxDelivery} days`
+        : "N/A";
+
+    // ----------------------------
+    // RENDER PRODUCT CARD
+    // ----------------------------
+    const card = document.createElement("div");
+    card.className = "product-card";
+
+    card.innerHTML = `
+      <img src="${proxied}" alt="${product.title}">
+      <h3>${product.title}</h3>
+
+      <div class="price-info">
+        <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
+        <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
+        <p>Total: <strong>$${totalPrice}</strong></p>
+        <p>Delivery: ${delivery}</p>
+      </div>
+
+      <label for="state-${product.id}">State</label>
+      <select id="state-${product.id}">
+        <option value="">Select a state</option>
+        ${Object.keys(stateTaxRates)
+          .map(abbr => `<option value="${abbr}">${abbr}</option>`)
+          .join("")}
+      </select>
+
+      <button class="buy-now-btn" id="buy-${product.id}">Buy Now</button>
+    `;
+
+    container.appendChild(card);
+
+    // ----------------------------
+    // BUY NOW BUTTON
+    // ----------------------------
+    document.getElementById(`buy-${product.id}`).addEventListener("click", async () => {
+      const state = document.getElementById(`state-${product.id}`).value;
+
+      if (!state) {
+        alert("Please select a state before checkout.");
+        return;
+      }
+
+      const taxRate = stateTaxRates[state] / 100;
+      const salesTax = (product.price + product.shipping) * taxRate;
+      const totalWithTax = product.price + product.shipping + salesTax;
+
+      try {
+        const resp = await fetchWithRetry(`${API_BASE}/api/cart/add`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: product.title,
+            price: product.price,
+            shipping_fee: product.shipping,
+            stateSalesTax: salesTax,
+            totalPriceWithTax: totalWithTax,
+            image: skuImage,
+            productId: product.id,
+            skuId: product.skuId
+          })
+        });
+
+        const data = await resp.json();
+        if (data?.url) window.open(data.url, "_blank");
+        else alert("Checkout failed.");
+      } catch (err) {
+        console.error("Stripe checkout error:", err);
+        alert("Checkout failed.");
+      }
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadProducts);
+</script>
+
+</body>
+</html>
