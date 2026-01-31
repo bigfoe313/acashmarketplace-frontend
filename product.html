@@ -234,6 +234,35 @@ buyNowBtn.addEventListener("click", async () => {
     alert("Stripe checkout failed. See console.");
   }
 });
+// --- MetaMask button code (new) ---
+metamaskBtn.addEventListener("click", (e) => {
+  e.preventDefault(); // prevent page blink
+
+  const basePrice = product.price;
+  const shipping = product.shipping;
+  const discountTotal = basePrice * 0.9;
+  const total = discountTotal + shipping;
+
+  let normalizedImage = skuImage || product.image;
+  if (normalizedImage) normalizedImage = normalizedImage.split("?")[0];
+  if (normalizedImage && !normalizedImage.startsWith("http")) {
+    normalizedImage = `https:${normalizedImage}`;
+  }
+
+  const cart = {
+    title: product.title,
+    productId: product.id,
+    color: "",
+    image: normalizedImage?.replace(/ /g, "%20"),
+    price: basePrice,
+    shipping,
+    total,
+    discountTotal: discountTotal.toFixed(2),
+  };
+
+  // Call your existing MetaMask checkout flow here
+  console.log("MetaMask cart:", cart);
+});
 });
 </script>
 </body>
