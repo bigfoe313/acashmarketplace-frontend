@@ -71,6 +71,12 @@
     .metamask-logo { width: 20px; height: 20px; }
     .or-divider { display:flex; align-items:center; justify-content:center; margin-top:8px; }
     .or-divider div { flex:1;border-bottom:1px solid #ccc; margin:0 8px; }
+    .buy-now-btn:disabled {
+      background-color: #cccccc;
+      color: #666666;
+      cursor: not-allowed;
+      opacity: 0.6; /* slight transparency */
+    }
   </style>
 </head>
 <body>
@@ -152,73 +158,54 @@ document.addEventListener("DOMContentLoaded", async function () {
     </div>
   `;
 
-  // === Functions ===
-const updateTotalPrice = () => {
-  const state = document.getElementById("state").value;
+// === Attach Listeners ===
+const stateSelect = document.getElementById("state");
+const buyNowBtn = document.getElementById("buyNowBtn");
 
-  const price = Number(product.price);
-  const shipping = Number(product.shipping);
-  const subtotal = price + shipping;
+// Disable Buy Now button initially
+buyNowBtn.disabled = true;
 
-  const taxRate = state ? stateTaxRates[state] / 100 : 0;
-  const salesTax = subtotal * taxRate;
-  const totalWithTax = subtotal + salesTax;
+// Enable button only when a state is selected
+stateSelect.addEventListener("change", () => {
+  updateTotalPrice();
+  buyNowBtn.disabled = !stateSelect.value; // enables if state selected
+});
 
-  // Update DOM
-  const taxLine = document.getElementById("salesTaxLine");
-  const taxAmount = document.getElementById("salesTaxAmount");
-  const totalEl = document.getElementById("totalPrice");
+// Click listener for Buy Now
+buyNowBtn.addEventListener("click", async () => {
+  const state = stateSelect.value;
 
-  if (state && taxRate > 0) {
-    taxLine.style.display = "block";
-    taxAmount.textContent = `$${salesTax.toFixed(2)}`;
-  } else {
-    taxLine.style.display = "none";
+  if (!state) {
+    alert("Please select a state to calculate sales tax before purchasing.");
+    return; // stop execution
   }
 
-  totalEl.textContent = `$${totalWithTax.toFixed(2)}`;
+  try {
+    const { salesTax, totalWithTax } = updateTotalPrice();
 
-  return { 
-    salesTax, 
-    totalWithTax,
-    salesTaxFormatted: salesTax.toFixed(2),
-    totalWithTaxFormatted: totalWithTax.toFixed(2)
-  };
-};
+    const stripeResp = await fetch(`${API_BASE}/api/cart/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: product.title,
+        price: product.price,
+        shipping_fee: product.shipping,
+        stateSalesTax: salesTax,
+        totalPriceWithTax: totalWithTax,
+        image: skuImage,
+        productId: product.id,
+        skuId: product.skuId
+      })
+    });
 
-  // === Attach Listeners ===
-  const stateSelect = document.getElementById("state");
-  const buyNowBtn = document.getElementById("buyNowBtn");
-
-  stateSelect.addEventListener("change", updateTotalPrice);
-
-  buyNowBtn.addEventListener("click", async () => {
-    try {
-      const { salesTax, totalWithTax } = updateTotalPrice();
-
-      const stripeResp = await fetch(`${API_BASE}/api/cart/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: product.title,
-          price: product.price,
-          shipping_fee: product.shipping,
-          stateSalesTax: salesTax,
-          totalPriceWithTax: totalWithTax,
-          image: skuImage,
-          productId: product.id,
-          skuId: product.skuId
-        })
-      });
-
-      const data = await stripeResp.json();
-      if (data.url) window.open(data.url, "_blank");
-      else alert("Failed to start checkout session.");
-    } catch (err) {
-      console.error("Stripe checkout error:", err);
-      alert("Stripe checkout failed. See console.");
-    }
-  });
+    const data = await stripeResp.json();
+    if (data.url) window.open(data.url, "_blank");
+    else alert("Failed to start checkout session.");
+  } catch (err) {
+    console.error("Stripe checkout error:", err);
+    alert("Stripe checkout failed. See console.");
+  }
+});
 });
 </script>
 </body>
