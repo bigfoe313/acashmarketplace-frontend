@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,162 +79,147 @@
 
 <script>
 const API_BASE = "https://acashmarketplace-backend.onrender.com";
-
-// Parse product data from URL
-const urlParams = new URLSearchParams(window.location.search);
-const product = {
-  id: urlParams.get("id"),
-  title: decodeURIComponent(urlParams.get("title") || ""),
-  price: parseFloat(urlParams.get("price") || 0),
-  shipping: parseFloat(urlParams.get("shipping") || 0),
-  image: decodeURIComponent(urlParams.get("image") || ""),
-  skuId: urlParams.get("skuId") || "",
-  minDelivery: urlParams.get("minDelivery") || "N/A",
-  maxDelivery: urlParams.get("maxDelivery") || "N/A"
+// === STATE SALES TAX RATES (Base %) ===
+const stateTaxRates = {
+  AL: 4.00, AK: 0.00, AZ: 5.60, AR: 6.50, CA: 7.25, CO: 2.90, CT: 6.35, DE: 0.00,
+  FL: 6.00, GA: 4.00, HI: 4.00, ID: 6.00, IL: 6.25, IN: 7.00, IA: 6.00, KS: 6.50,
+  KY: 6.00, LA: 4.45, ME: 5.50, MD: 6.00, MA: 6.25, MI: 6.00, MN: 6.875, MS: 7.00,
+  MO: 4.225, MT: 0.00, NE: 5.50, NV: 6.85, NH: 0.00, NJ: 6.625, NM: 5.125,
+  NY: 4.00, NC: 4.75, ND: 5.00, OH: 5.75, OK: 4.50, OR: 0.00, PA: 6.00,
+  RI: 7.00, SC: 6.00, SD: 4.50, TN: 7.00, TX: 6.25, UT: 4.85, VT: 6.00,
+  VA: 5.30, WA: 6.50, WV: 6.00, WI: 5.00, WY: 4.00, DC: 6.00
 };
 
-const container = document.getElementById("productContainer");
-const discountPrice = (product.price * 0.9).toFixed(2);
-const totalPrice = (product.price + product.shipping).toFixed(2);
-const delivery = (product.minDelivery !== "N/A" && product.maxDelivery !== "N/A") ? `${product.minDelivery}-${product.maxDelivery} Days` :
-                 (product.minDelivery !== "N/A") ? `${product.minDelivery} Days` :
-                 (product.maxDelivery !== "N/A") ? `${product.maxDelivery} Days` : "N/A";
+// === MAIN SCRIPT ===
+document.addEventListener("DOMContentLoaded", async function () {
+  const params = new URLSearchParams(window.location.search);
+  const product = {
+    id: params.get("id"),
+    title: decodeURIComponent(params.get("title")),
+    price: parseFloat(params.get("price")),
+    shipping: parseFloat(params.get("shipping")),
+    image: decodeURIComponent(params.get("image")),
+    skuId: params.get("skuId"),
+    minDelivery: params.get("minDelivery"),
+    maxDelivery: params.get("maxDelivery")
+  };
 
-// Helper to proxy images
-const proxyImage = (url) => url ? `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}` : "";
+  const container = document.getElementById("productContainer");
+  const proxiedImage = product.image;
+  const delivery = `${product.minDelivery}–${product.maxDelivery} days`;
+  const totalPrice = (product.price + product.shipping).toFixed(2);
+  const discountPrice = (product.price * 0.9).toFixed(2);
+  const skuImage = product.image;
+  const API_BASE = "https://acashmarketplace-backend.onrender.com";
 
-// Fetch SKU image from backend before rendering
-(async () => {
-  try {
-    let skuImage = product.image;
-    let color = "Default";
+  // === Render Product Card ===
+  container.innerHTML = `
+    <div class="product-card">
+      <img id="productImage" src="${proxiedImage}" alt="${product.title}" />
+      <h3 id="productTitle">${product.title}</h3>
 
-    // Ask backend for resolved SKU image via MetaMask cart API
-    const resp = await fetch(`${API_BASE}/api/metamask-checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: product.title,
-        price: product.price,
-        shipping_fee: product.shipping,
-        image: product.image,
-        productId: product.id,
-        skuId: product.skuId
-      })
-    });
-
-    const json = await resp.json();
-    if (json && json.cart) {
-      skuImage = json.cart.image || product.image;
-      color = json.cart.color || "Default";
-    }
-
-    const proxiedImage = proxyImage(skuImage);
-
-    // Render product card with correct SKU image
-    container.innerHTML = `
-      <div class="product-card">
-        <img id="productImage" src="${proxiedImage}" alt="${product.title}" />
-        <h3 id="productTitle">${product.title}</h3>
-        <div class="price-info">
-          <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
-          <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
-          <p>Total: <strong>$${totalPrice}</strong></p>
-          <p>Delivery: ${delivery}</p>
-        </div>
-        <button class="buy-now-btn" id="buyNowBtn">Buy Now</button>
-
-        <div class="or-divider">
-          <div></div><span>OR</span><div></div>
-        </div>
-
-        <a href="#" id="metamaskBtn" class="metamask-btn" target="_blank" rel="noopener">
-          <div class="mm-text">
-            <span class="mm-line1">Buy with 10% Discount</span>
-            <div class="mm-price-row">
-              <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
-              <img class="metamask-logo" src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024" alt="Metamask">
-            </div>
-          </div>
-        </a>
+      <div class="price-info">
+        <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
+        <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
+        <p id="salesTaxLine" style="display:none;">Sales Tax: <strong id="salesTaxAmount">$0.00</strong></p>
+        <p>Total: <strong id="totalPrice">$${totalPrice}</strong></p>
+        <p>Delivery: ${delivery}</p>
       </div>
-    `;
 
-    // Stripe Buy Now button
-    document.getElementById("buyNowBtn").addEventListener("click", async () => {
-      try {
-        const stripeResp = await fetch(`${API_BASE}/api/cart/add`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: product.title,
-            price: product.price,
-            shipping_fee: product.shipping,
-            image: skuImage, // ⚡ Use the SKU image here
-            productId: product.id,
-            skuId: product.skuId
-          })
-        });
-        const data = await stripeResp.json();
-        if (data.url) window.open(data.url, "_blank");
-        else alert("Failed to start checkout session.");
-      } catch (err) {
-        console.error("Stripe checkout error:", err);
-        alert("Stripe checkout failed. See console.");
-      }
-    });
+      <label for="state">State</label>
+      <select id="state" name="state">
+        <option value="">Select a state</option>
+        ${Object.keys(stateTaxRates)
+          .map((abbr) => `<option value="${abbr}">${abbr}</option>`)
+          .join("")}
+      </select>
 
-    // MetaMask checkout button
-    document.getElementById("metamaskBtn").addEventListener("click", async (e) => {
-      e.preventDefault();
-      try {
-        const cartData = await fetch(`${API_BASE}/api/metamask-checkout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: product.title,
-            price: product.price,
-            shipping_fee: product.shipping,
-            image: product.image,
-            productId: product.id,
-            skuId: product.skuId
-          })
-        }).then(r => r.json());
+      <button class="buy-now-btn" id="buyNowBtn">Buy Now</button>
 
-        const cart = cartData?.cart || {};
-        const cartImage = proxyImage(cart.image || skuImage);
-        const cartColor = cart.color || color;
-        const cartPrice = Number(cart.price ?? product.price);
-        const cartShipping = Number(cart.shipping ?? product.shipping);
-        const cartDiscountTotal = Number(cart.discountTotal ?? (cartPrice * 0.9));
-        const cartTotal = Number(cart.total ?? (cartDiscountTotal + cartShipping));
+      <div class="or-divider"><div></div><span>OR</span><div></div></div>
 
-        const mmUrl = 
-          `https://metamask.app.link/dapp/bigfoe313.github.io/shoppingcart/?` +
-          `_autoresponse=${encodeURIComponent(`Thank you for shopping with us. Your order (${cartPrice.toFixed(2)} A-CASH plus ${cartShipping.toFixed(2)} A-CASH shipping cost plus applicable sales tax) has been received.`)}` +
-          `&_subject=${encodeURIComponent(`A-CASH Marketplace order confirmation (${cart.title || product.title}) - transactionHash`)}` +
-          `&cartTitle=${encodeURIComponent(cart.title || product.title)}` +
-          `&cartProductId=${encodeURIComponent(cart.productId || product.id)}` +
-          `&cartColor=${encodeURIComponent(cartColor)}` +
-          `&cartImage=${encodeURIComponent(cartImage)}` +
-          `&span1=${encodeURIComponent(`${cartDiscountTotal.toFixed(2)} A-CASH`)}` +
-          `&span2=${encodeURIComponent(`${cartShipping.toFixed(2)} A-CASH`)}` +
-          `&span3=${encodeURIComponent(delivery)}` +
-          `&span4=${encodeURIComponent(`${cartTotal.toFixed(2)} A-CASH`)}` +
-          `&total=${encodeURIComponent(`${cartTotal.toFixed(2)}`)}`;
+      <a href="#" id="metamaskBtn" class="metamask-btn" target="_blank" rel="noopener">
+        <div class="mm-text">
+          <span class="mm-line1">Buy with 10% Discount</span>
+          <div class="mm-price-row">
+            <span class="mm-line2"><strong>${discountPrice} A-CASH</strong></span>
+            <img class="metamask-logo" 
+              src="https://1drv.ms/i/c/1be873ae44c8b2ba/IQQV7auH9LBKSbJ4vuX7x-pFAbJAdhf6tVOeWiFc6XvMiYs?width=1024" 
+              alt="Metamask">
+          </div>
+        </div>
+      </a>
+    </div>
+  `;
 
-        window.open(mmUrl, "_blank");
-      } catch (err) {
-        console.error("MetaMask checkout error:", err);
-        alert("MetaMask checkout failed. See console.");
-      }
-    });
+  // === Functions ===
+const updateTotalPrice = () => {
+  const state = document.getElementById("state").value;
 
-  } catch (err) {
-    console.error("Error fetching SKU image:", err);
-    container.innerHTML = `<div class="product-card"><p>Failed to load product.</p></div>`;
+  const price = Number(product.price);
+  const shipping = Number(product.shipping);
+  const subtotal = price + shipping;
+
+  const taxRate = state ? stateTaxRates[state] / 100 : 0;
+  const salesTax = subtotal * taxRate;
+  const totalWithTax = subtotal + salesTax;
+
+  // Update DOM
+  const taxLine = document.getElementById("salesTaxLine");
+  const taxAmount = document.getElementById("salesTaxAmount");
+  const totalEl = document.getElementById("totalPrice");
+
+  if (state && taxRate > 0) {
+    taxLine.style.display = "block";
+    taxAmount.textContent = `$${salesTax.toFixed(2)}`;
+  } else {
+    taxLine.style.display = "none";
   }
-})();
+
+  totalEl.textContent = `$${totalWithTax.toFixed(2)}`;
+
+  return { 
+    salesTax, 
+    totalWithTax,
+    salesTaxFormatted: salesTax.toFixed(2),
+    totalWithTaxFormatted: totalWithTax.toFixed(2)
+  };
+};
+
+  // === Attach Listeners ===
+  const stateSelect = document.getElementById("state");
+  const buyNowBtn = document.getElementById("buyNowBtn");
+
+  stateSelect.addEventListener("change", updateTotalPrice);
+
+  buyNowBtn.addEventListener("click", async () => {
+    try {
+      const { salesTax, totalWithTax } = updateTotalPrice();
+
+      const stripeResp = await fetch(`${API_BASE}/api/cart/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: product.title,
+          price: product.price,
+          shipping_fee: product.shipping,
+          stateSalesTax: salesTax,
+          totalPriceWithTax: totalWithTax,
+          image: skuImage,
+          productId: product.id,
+          skuId: product.skuId
+        })
+      });
+
+      const data = await stripeResp.json();
+      if (data.url) window.open(data.url, "_blank");
+      else alert("Failed to start checkout session.");
+    } catch (err) {
+      console.error("Stripe checkout error:", err);
+      alert("Stripe checkout failed. See console.");
+    }
+  });
+});
 </script>
 </body>
 </html>
