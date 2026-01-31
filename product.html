@@ -158,6 +158,34 @@ document.addEventListener("DOMContentLoaded", async function () {
     </div>
   `;
 
+// === Function to calculate sales tax and total ===
+const updateTotalPrice = () => {
+  const state = document.getElementById("state").value;
+  const price = Number(product.price);
+  const shipping = Number(product.shipping);
+  const subtotal = price + shipping;
+
+  const taxRate = state ? stateTaxRates[state] / 100 : 0;
+  const salesTax = subtotal * taxRate;
+  const totalWithTax = subtotal + salesTax;
+
+  // Update DOM
+  const taxLine = document.getElementById("salesTaxLine");
+  const taxAmount = document.getElementById("salesTaxAmount");
+  const totalEl = document.getElementById("totalPrice");
+
+  if (state && taxRate > 0) {
+    taxLine.style.display = "block";
+    taxAmount.textContent = `$${salesTax.toFixed(2)}`;
+  } else {
+    taxLine.style.display = "none";
+  }
+
+  totalEl.textContent = `$${totalWithTax.toFixed(2)}`;
+
+  return { salesTax, totalWithTax };
+};
+  
 // === Attach Listeners ===
 const stateSelect = document.getElementById("state");
 const buyNowBtn = document.getElementById("buyNowBtn");
