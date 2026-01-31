@@ -236,7 +236,7 @@ buyNowBtn.addEventListener("click", async () => {
 });
 // --- MetaMask button code (new) ---
 metamaskBtn.addEventListener("click", (e) => {
-  e.preventDefault(); // prevent page blink
+  e.preventDefault(); // stop link from jumping
 
   const basePrice = product.price;
   const shipping = product.shipping;
@@ -260,8 +260,8 @@ metamaskBtn.addEventListener("click", (e) => {
     discountTotal: discountTotal.toFixed(2),
   };
 
-  // Call your existing MetaMask checkout flow here
   console.log("MetaMask cart:", cart);
+  alert("MetaMask checkout triggered!"); // for testing
 });
 });
 </script>
