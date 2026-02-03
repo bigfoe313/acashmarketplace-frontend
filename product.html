@@ -159,16 +159,17 @@ const proxyImage = (url) =>
       <div class="product-card">
         <img src="${proxiedImage}" alt="${product.title}">
         <h3>${product.title}</h3>
-
-        <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
-        <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
-
-        <p id="salesTaxLine" style="display:none;">
-          Sales Tax: <strong id="salesTaxAmount">$0.00</strong>
-        </p>
-
-        <p>Total: <strong id="totalPrice">$${baseTotal}</strong></p>
-        <p>Delivery: ${delivery}</p>
+        <div class="price-info">
+          <p>Price: <strong>$${product.price.toFixed(2)}</strong></p>
+          <p>Shipping: <strong>$${product.shipping.toFixed(2)}</strong></p>
+  
+          <p id="salesTaxLine" style="display:none;">
+            Sales Tax: <strong id="salesTaxAmount">$0.00</strong>
+          </p>
+  
+          <p>Total: <strong id="totalPrice">$${baseTotal}</strong></p>
+          <p>Delivery: ${delivery}</p>
+        </div>
 
         <label>State</label>
         <select id="state">
