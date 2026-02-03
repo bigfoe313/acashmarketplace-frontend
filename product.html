@@ -77,6 +77,16 @@
       cursor: not-allowed;
       opacity: 0.6; /* slight transparency */
     }
+    .inline-alert {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -177,7 +187,11 @@ const proxyImage = (url) =>
           ${Object.keys(stateTaxRates).map(s => `<option value="${s}">${s}</option>`).join("")}
         </select>
 
-        <button class="buy-now-btn" id="buyNowBtn" disabled>Buy Now</button>
+        <button class="buy-now-btn" id="buyNowBtn">Buy Now</button>
+        
+        <div id="stateAlert" class="inline-alert">
+          Please select a state to calculate sales tax before purchasing.
+        </div>
 
         <div class="or-divider"><span>OR</span></div>
 
@@ -215,13 +229,21 @@ const proxyImage = (url) =>
 
     stateSelect.addEventListener("change", () => {
       updateTotal();
-      buyNowBtn.disabled = !stateSelect.value;
     });
 
     // === STRIPE ===
+    const stateAlert = document.getElementById("stateAlert");
+    
     buyNowBtn.addEventListener("click", async () => {
+      if (!stateSelect.value) {
+        stateAlert.style.display = "block";
+        return;
+      }
+    
+      stateAlert.style.display = "none";
+    
       const { tax, total } = updateTotal();
-
+    
       const res = await fetch(`${API_BASE}/api/cart/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,7 +258,7 @@ const proxyImage = (url) =>
           skuId: product.skuId
         })
       });
-
+    
       const data = await res.json();
       if (data.url) window.open(data.url, "_blank");
     });
