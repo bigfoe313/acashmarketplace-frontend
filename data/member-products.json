@@ -1,0 +1,12 @@
+[
+  {
+    "id": "cosmonomics-book",
+    "title": "Cosmonomics",
+    "description": "A groundbreaking book exploring the economic philosophy of Cosmonomics and its vision for global empowerment.",
+    "image": "https://m.media-amazon.com/images/I/71hX3kGzY-L._SL1500_.jpg",
+    "displayPrice": "View on Amazon",
+    "checkoutUrl": "https://www.amazon.com/dp/B0DH8GHFL6",
+    "external": true,
+    "badge": "Member Product"
+  }
+]
