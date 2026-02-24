@@ -1407,10 +1407,63 @@
         container.innerHTML = '<div style="text-align:center; padding:40px; grid-column: 1 / -1;"><i class="fas fa-exclamation-triangle fa-2x" style="color:#dc3545;"></i><p style="margin-top:15px;">Failed to load featured products. Please try again later.</p></div>';
       }
     }
+
+    // ===============================
+    // Frontend Member Offerings Loader
+    // ===============================
+    async function loadMemberProducts() {
+      const container = document.getElementById("memberContainer");
     
+      try {
+        const response = await fetch("data/member-products.json");
+    
+        if (!response.ok) {
+          throw new Error("Failed to load member products");
+        }
+    
+        const products = await response.json();
+    
+        container.innerHTML = "";
+    
+        products.forEach(prod => {
+    
+          const card = document.createElement("div");
+          card.className = "product-card";
+    
+          const linkTarget = prod.external ? "_blank" : "_self";
+    
+          card.innerHTML = `
+            <a href="${prod.checkoutUrl}" target="${linkTarget}" 
+               style="text-decoration:none;color:inherit;display:block;">
+              <img class="product-image" 
+                   src="${prod.image}" 
+                   alt="${prod.title}">
+              <div class="product-info">
+                <h3>${prod.title}</h3>
+                <div class="product-price">${prod.displayPrice}</div>
+                <p style="margin-top:10px; font-weight:600;">
+                  ${prod.description}
+                </p>
+              </div>
+            </a>
+          `;
+    
+          container.appendChild(card);
+        });
+    
+      } catch (error) {
+        console.error("Error loading member products:", error);
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px;">
+            Failed to load member offerings.
+          </div>
+        `;
+      }
+    }    
     // Initialize and load
     initCategoryDropdown();
     loadFeaturedProducts();
+    loadMemberProducts();
     
     // Modal logic
     const contactLink = document.getElementById('contactLink');
