@@ -7,5 +7,14 @@
     "displayPrice": "$12.99",
     "checkoutUrl": "https://www.amazon.com/dp/B0DH8GHFL6",
     "external": true
+  },
+  {
+    "id": "cosmonomics-book",
+    "title": "Cosmonomics (eBook)",
+    "description": "Cosmonomics unveils the correlation between physical and metaphysical laws in life and how they can be used to aid the physical, spiritual, and economic health of individuals and communities.",
+    "image": "https://m.media-amazon.com/images/I/81xy6avNg-L._SL1500_.jpg",
+    "displayPrice": "$7.99",
+    "checkoutUrl": "https://www.amazon.com/dp/B0DFVP8KPN",
+    "external": true
   }
 ]
