@@ -1039,153 +1039,192 @@
     const categoryIcon = document.getElementById('categoryIcon');
     const categoryDropdown = document.getElementById('categoryDropdown');
 
-    // Category data with subcategories
-    const categories = [
-      {
-        name: "Consumer Electronics",
-        subcategories: [
-          { name: "Mobile Phone", full: "Consumer Electronics > Mobile Phone" },
-          { name: "Earphones & Headphones", full: "Consumer Electronics > Earphones & Headphones" },
-          { name: "Smart Watch", full: "Consumer Electronics > Smart Watch" },
-          { name: "Tablet PC", full: "Consumer Electronics > Tablet PC" }
-        ]
-      },
-      {
-        name: "Computer & Office",
-        subcategories: [
-          { name: "Laptops", full: "Computer & Office > Laptops" },
-          { name: "Computer Keyboards", full: "Computer & Office > Computer Keyboards" },
-          { name: "Computer Mouse", full: "Computer & Office > Computer Mouse" },
-          { name: "Computer Storage Devices", full: "Computer & Office > Computer Storage Devices" }
-        ]
-      },
-      {
-        name: "Home & Garden",
-        subcategories: [
-          { name: "Kitchen Tools", full: "Home & Garden > Kitchen Tools" },
-          { name: "Home Decor", full: "Home & Garden > Home Decor" },
-          { name: "Lighting", full: "Home & Garden > Lighting" },
-          { name: "Storage & Organization", full: "Home & Garden > Storage & Organization" }
-        ]
-      },
-      {
-        name: "Beauty & Health",
-        subcategories: [
-          { name: "Skin Care", full: "Beauty & Health > Skin Care" },
-          { name: "Women's Makeup", full: "Beauty & Health > Women's Makeup" },
-          { name: "Hair Care Products", full: "Beauty & Health > Hair Care Products" },
-          { name: "Health Monitoring Devices", full: "Beauty & Health > Health Monitoring Devices" }
-        ]
-      },
-      {
-        name: "Sports & Entertainment",
-        subcategories: [
-          { name: "Cycling", full: "Sports & Entertainment > Cycling" },
-          { name: "Camping & Hiking", full: "Sports & Entertainment > Camping & Hiking" },
-          { name: "Fitness Equipment", full: "Sports & Entertainment > Fitness Equipment" },
-          { name: "Musical Instruments", full: "Sports & Entertainment > Musical Instruments" }
-        ]
-      },
-      {
-        name: "Toys & Hobbies",
-        subcategories: [
-          { name: "Action Figure", full: "Toys & Hobbies > Action Figure" },
-          { name: "Building Blocks", full: "Toys & Hobbies > Building Blocks" },
-          { name: "RC Toys", full: "Toys & Hobbies > RC Toys" },
-          { name: "Educational Toys", full: "Toys & Hobbies > Educational Toys" }
-        ]
-      },
-      {
-        name: "Automobiles & Motorcycles",
-        subcategories: [
-          { name: "Car Electronics", full: "Automobiles & Motorcycles > Car Electronics" },
-          { name: "Interior Accessories", full: "Automobiles & Motorcycles > Interior Accessories" },
-          { name: "Motorcycle Parts", full: "Automobiles & Motorcycles > Motorcycle Parts" }
-        ]
-      },
-      {
-        name: "Jewelry & Accessories",
-        subcategories: [
-          { name: "Necklace", full: "Jewelry & Accessories > Necklace" },
-          { name: "Bracelet", full: "Jewelry & Accessories > Bracelet" },
-          { name: "Ring", full: "Jewelry & Accessories > Ring" },
-          { name: "Watches", full: "Jewelry & Accessories > Watches" }
-        ]
-      },
-      {
-        name: "Bags & Luggage",
-        subcategories: [
-          { name: "Backpack", full: "Bags & Luggage > Backpack" },
-          { name: "Handbag", full: "Bags & Luggage > Handbag" },
-          { name: "Suitcases", full: "Bags & Luggage > Suitcases" },
-          { name: "Smart Wallet", full: "Bags & Luggage > Smart Wallet" }
-        ]
-      }
-    ];
-
-    // Initialize category dropdown with subcategories
-    function initCategoryDropdown() {
-      categories.forEach(category => {
-        // Create category item
-        const categoryItem = document.createElement('div');
-        categoryItem.className = 'category-item';
-        categoryItem.textContent = category.name;
-        categoryItem.addEventListener('click', (e) => {
-          e.stopPropagation();
-          // Toggle active class to show/hide subcategories
-          categoryItem.classList.toggle('active');
-        });
-        categoryDropdown.appendChild(categoryItem);
-
-        // Create subcategory list
-        const subcategoryList = document.createElement('div');
-        subcategoryList.className = 'subcategory-list';
-        
-        category.subcategories.forEach(subcategory => {
-          const subcategoryItem = document.createElement('div');
-          subcategoryItem.className = 'subcategory-item';
-          subcategoryItem.textContent = subcategory.name;
-          subcategoryItem.setAttribute('data-full', subcategory.full);
-          subcategoryItem.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // MODIFIED: Only use the subcategory name, not the full path
-            searchInput.value = subcategory.name;
-            performSearch(subcategory.name); // Search using just the subcategory name
-            categoryDropdown.classList.remove('show');
-            // Remove active class from all category items
-            document.querySelectorAll('.category-item').forEach(item => {
-              item.classList.remove('active');
-            });
+    // Selected AliExpress category ID
+    let selectedCategoryId = "";
+    
+    // Categories excluded from the customer-facing menu
+    const excludedCategories = new Set([
+      "women's clothing",
+      "men's clothing",
+      "shoes"
+    ]);
+    
+    // Build the category dropdown from AliExpress category data
+    async function initCategoryDropdown() {
+      try {
+        const response = await fetch(`${API_BASE}/api/categories`);
+    
+        if (!response.ok) {
+          throw new Error("Unable to load AliExpress categories");
+        }
+    
+        const data = await response.json();
+    
+        // Accept either an array or an object containing categories
+        const rawCategories = Array.isArray(data)
+          ? data
+          : data.categories || data.results || [];
+    
+        if (!Array.isArray(rawCategories)) {
+          throw new Error("Invalid category data");
+        }
+    
+        categoryDropdown.innerHTML = "";
+    
+        // Create a lookup map using actual AliExpress category IDs
+        const categoryMap = new Map();
+    
+        rawCategories.forEach(category => {
+          const name = category.category_name || category.name;
+          const id = category.category_id;
+    
+          if (!name || id == null) return;
+    
+          if (excludedCategories.has(name.trim().toLowerCase())) return;
+    
+          categoryMap.set(String(id), {
+            id: String(id),
+            name: name,
+            parentId: category.parent_category_id == null
+              ? null
+              : String(category.parent_category_id),
+            children: []
           });
-          subcategoryList.appendChild(subcategoryItem);
         });
-        
-        categoryDropdown.appendChild(subcategoryList);
-      });
+    
+        // Build the parent-child hierarchy
+        const rootCategories = [];
+    
+        categoryMap.forEach(category => {
+          const parent = category.parentId
+            ? categoryMap.get(category.parentId)
+            : null;
+    
+          if (parent) {
+            parent.children.push(category);
+          } else {
+            rootCategories.push(category);
+          }
+        });
+    
+        // Sort alphabetically
+        function sortCategories(items) {
+          items.sort((a, b) => a.name.localeCompare(b.name));
+          items.forEach(item => sortCategories(item.children));
+        }
+    
+        sortCategories(rootCategories);
+    
+        // All Categories option
+        const allItem = document.createElement("div");
+        allItem.className = "category-item";
+        allItem.textContent = "All Categories";
+    
+        allItem.addEventListener("click", e => {
+          e.stopPropagation();
+    
+          selectedCategoryId = "";
+          searchInput.value = "";
+    
+          categoryDropdown.classList.remove("show");
+    
+          document.querySelectorAll(".category-item").forEach(item => {
+            item.classList.remove("active");
+          });
+    
+          document.getElementById("selectedCategory").textContent =
+            "All Categories";
+        });
+    
+        categoryDropdown.appendChild(allItem);
+    
+        // Create major categories and their subcategories
+        rootCategories
+          .filter(category => category.children.length > 0)
+          .forEach(category => {
+    
+            const categoryItem = document.createElement("div");
+            categoryItem.className = "category-item";
+            categoryItem.textContent = category.name;
+    
+            const subcategoryList = document.createElement("div");
+            subcategoryList.className = "subcategory-list";
+    
+            categoryItem.addEventListener("click", e => {
+              e.stopPropagation();
+    
+              // Close other expanded major categories
+              document.querySelectorAll(".category-item").forEach(item => {
+                if (item !== categoryItem) {
+                  item.classList.remove("active");
+                }
+              });
+    
+              categoryItem.classList.toggle("active");
+            });
+    
+            category.children.forEach(subcategory => {
+              const subcategoryItem = document.createElement("div");
+    
+              subcategoryItem.className = "subcategory-item";
+              subcategoryItem.textContent = subcategory.name;
+    
+              subcategoryItem.addEventListener("click", e => {
+                e.stopPropagation();
+    
+                // Save the actual AliExpress category ID
+                selectedCategoryId = subcategory.id;
+    
+                searchInput.value = subcategory.name;
+    
+                document.getElementById("selectedCategory").textContent =
+                  subcategory.name;
+    
+                categoryDropdown.classList.remove("show");
+    
+                document.querySelectorAll(".category-item").forEach(item => {
+                  item.classList.remove("active");
+                });
+    
+                // Search using the selected category ID
+                performSearch(subcategory.name, selectedCategoryId);
+              });
+    
+              subcategoryList.appendChild(subcategoryItem);
+            });
+    
+            categoryDropdown.appendChild(categoryItem);
+            categoryDropdown.appendChild(subcategoryList);
+          });
+    
+      } catch (error) {
+        console.error("Category dropdown error:", error);
+        categoryDropdown.textContent = "Unable to load categories.";
+      }
     }
-
+    
     // Toggle category dropdown
-    categoryIcon.addEventListener('click', (e) => {
+    categoryIcon.addEventListener("click", e => {
       e.stopPropagation();
-      categoryDropdown.classList.toggle('show');
-      // Remove active class from all category items when closing
-      if (!categoryDropdown.classList.contains('show')) {
-        document.querySelectorAll('.category-item').forEach(item => {
-          item.classList.remove('active');
-        });
-      }
+      categoryDropdown.classList.toggle("show");
     });
-
+    
     // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!categoryDropdown.contains(e.target) && !categoryIcon.contains(e.target)) {
-        categoryDropdown.classList.remove('show');
-        // Remove active class from all category items
-        document.querySelectorAll('.category-item').forEach(item => {
-          item.classList.remove('active');
+    document.addEventListener("click", e => {
+      if (
+        !categoryDropdown.contains(e.target) &&
+        !categoryIcon.contains(e.target)
+      ) {
+        categoryDropdown.classList.remove("show");
+    
+        document.querySelectorAll(".category-item").forEach(item => {
+          item.classList.remove("active");
         });
       }
     });
+    
+    // Load categories
+    initCategoryDropdown();
 
     // Helper function to check if the image is square and has valid dimensions
     function isValidImage(imageUrl) {
@@ -1208,7 +1247,7 @@
     }
 
     // Perform API search
-    async function performSearch(searchTerm) {
+    async function performSearch(searchTerm, categoryId = selectedCategoryId) {
       try {
         searchResultsGrid.innerHTML = '<div style="text-align:center; padding:40px; grid-column: 1 / -1;"><i class="fas fa-spinner fa-spin fa-2x" style="color:var(--primary);"></i><p style="margin-top:15px;">Searching for products...</p></div>';
         resultsContainer.style.display = 'block';
@@ -1216,7 +1255,13 @@
         // Hide featured products when showing search results
         featuredProducts.style.display = 'none';
 
-        const response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(searchTerm)}`);
+        const params = new URLSearchParams({ q: searchTerm });
+        
+        if (categoryId) {
+          params.set("categoryId", categoryId);
+        }
+        
+        const response = await fetch(`${API_BASE}/api/search?${params.toString()}`);
         
         if (!response.ok) {
           throw new Error('Search request failed');
