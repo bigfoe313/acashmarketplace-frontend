@@ -1132,8 +1132,6 @@
             item.classList.remove("active");
           });
     
-          document.getElementById("selectedCategory").textContent =
-            "All Categories";
         });
     
         categoryDropdown.appendChild(allItem);
@@ -1176,9 +1174,6 @@
                 selectedCategoryId = subcategory.id;
     
                 searchInput.value = subcategory.name;
-    
-                document.getElementById("selectedCategory").textContent =
-                  subcategory.name;
     
                 categoryDropdown.classList.remove("show");
     
