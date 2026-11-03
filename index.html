@@ -1183,7 +1183,9 @@
           document.querySelectorAll(".category-item").forEach(item => {
             item.classList.remove("active");
           });
-    
+
+          document.getElementById("categoryLabel").style.display = "inline"; 
+          
         });
     
         categoryDropdown.appendChild(allItem);
@@ -1230,7 +1232,9 @@
               
                 // Save the actual AliExpress category ID
                 selectedCategoryId = subcategory.id;
-              
+
+                document.getElementById("categoryLabel").style.display = "none";
+                
                 // Clear the search box so buyer can enter keywords
                 searchInput.value = "";
               
@@ -1265,7 +1269,7 @@
     }
     
     // Toggle category dropdown
-    categoryIcon.addEventListener("click", e => {
+    categorySelector.addEventListener("click", e => {
       e.stopPropagation();
       categoryDropdown.classList.toggle("show");
     });
