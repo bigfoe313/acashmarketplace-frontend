@@ -832,18 +832,31 @@
   <!-- Search Section -->
   <section class="container">
     <div class="search-section">
-
-        <div class="search-box">
-          <div id="categoryIcon">
-            <img src="https://ae-pic-a1.aliexpress-media.com/kf/Sa976459fb7724bf1bca6e153a425a8ebg.png" alt="All Categories">
-          </div>
-          <input type="text" id="searchInput" placeholder="Search for products, brands..." />
-          <button id="clearBtn">×</button>
-          <div id="categoryDropdown"></div>
+      <div class="search-box">
+        <div id="categoryIcon">
+          <img src="https://ae-pic-a1.aliexpress-media.com/kf/Sa976459fb7724bf1bca6e153a425a8ebg.png" alt="All Categories">
         </div>
+  
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search within selected category..."
+          style="display: none;"
+        />
+  
+        <button id="clearBtn" style="display: none;">×</button>
+  
+        <div id="categoryDropdown"></div>
+      </div>
     </div>
-    <!-- 🔍 Search button now sits completely outside and below -->
-    <button id="searchBtn" class="search-outside-btn">🔍 Search</button>
+  
+    <button
+      id="searchBtn"
+      class="search-outside-btn"
+      style="display: none;"
+    >
+      🔍 Search
+    </button>
   </section>
 
   <!-- Results Container -->
@@ -1070,6 +1083,10 @@
         }
     
         categoryDropdown.innerHTML = "";
+
+        searchInput.style.display = "none";
+        document.getElementById("searchBtn").style.display = "none";
+        document.getElementById("clearBtn").style.display = "none";
     
         // Create a lookup map using actual AliExpress category IDs
         const categoryMap = new Map();
@@ -1125,7 +1142,11 @@
     
           selectedCategoryId = "";
           searchInput.value = "";
-    
+
+          searchInput.style.display = "none";
+          document.getElementById("searchBtn").style.display = "none";
+          document.getElementById("clearBtn").style.display = "none";
+          
           categoryDropdown.classList.remove("show");
     
           document.querySelectorAll(".category-item").forEach(item => {
@@ -1150,7 +1171,12 @@
     
             categoryItem.addEventListener("click", e => {
               e.stopPropagation();
-    
+
+              // Hide search controls until a subcategory is selected
+              searchInput.style.display = "none";
+              document.getElementById("searchBtn").style.display = "none";
+              document.getElementById("clearBtn").style.display = "none";
+              
               // Close other expanded major categories
               document.querySelectorAll(".category-item").forEach(item => {
                 if (item !== categoryItem) {
@@ -1179,7 +1205,12 @@
               
                 // Update placeholder to show selected category
                 searchInput.placeholder = `Search within ${subcategory.name}...`;
-              
+
+                // Show search controls after selecting a subcategory
+                searchInput.style.display = "block";
+                document.getElementById("searchBtn").style.display = "block";
+                document.getElementById("clearBtn").style.display = "block";
+                
                 // Close category dropdown
                 categoryDropdown.classList.remove("show");
               
