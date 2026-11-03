@@ -1365,99 +1365,143 @@
       });
     });
 
-    // Featured Products Loading
-    async function loadFeaturedProducts() {
-      const container = document.getElementById("featuredContainer");
-      container.innerHTML = '<div style="text-align:center; padding:40px; grid-column: 1 / -1;"></div>';
-    
-      const searchTerms = [
-        "Smart Glasses",
-        "Smart Watch",
-        "Laptops",
-        "Earphones & Headphones",
-        "Mobile Phones"
-      ];
-    
-      try {
-        const responses = await Promise.all(
-          searchTerms.map(term =>
-            fetch(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`)
-              .then(res => (res.ok ? res.json() : null))
-              .catch(() => null)
-          )
-        );
-    
-        const products = [];
-        for (const data of responses) {
-          if (!data || !Array.isArray(data.results)) continue;
-    
-          // Filter out products with invalid images (likely rectangular or too small)
-          const valid = await Promise.all(data.results.map(async (p) => {
-            const hasValidDelivery =
-              (p.min_delivery_days && p.min_delivery_days !== "N/A") ||
-              (p.max_delivery_days && p.max_delivery_days !== "N/A");
-    
-            // Check if image is valid (square and valid size)
-            const isValidImageCheck = await isValidImage(p.image);
-    
-            return p.title && p.price && hasValidDelivery && isValidImageCheck;
-          }));
-    
-          // Add only the valid products
-          const validProducts = data.results
-            .filter((_, index) => valid[index])
-            .sort(() => Math.random() - 0.5)   // shuffle
-            .slice(0, 2); // <= limit to 2 per search term
-          
-          products.push(...validProducts);
-        }
-    
-        if (products.length === 0) {
-          container.innerHTML = '<div style="text-align:center; padding:40px; grid-column: 1 / -1;"><i class="fas fa-exclamation-circle fa-2x" style="color:var(--gray);"></i><p style="margin-top:15px;">No featured products available at the moment.</p></div>';
-        } else {
-          container.innerHTML = "";
-          products.slice(0, 8).forEach(prod => {
-            const deliveryText =
-              prod.min_delivery_days && prod.max_delivery_days
-                ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
-                : prod.min_delivery_days || prod.max_delivery_days || "N/A";
-    
-            const qp = new URLSearchParams({
-              id: prod.id ?? "",
-              title: prod.title ?? "",
-              price: prod.price ?? "0",
-              shipping: prod.shipping_fee ?? "0",
-              image: prod.image ?? "",
-              skuId: prod.sku_id ?? "",
-              minDelivery: prod.min_delivery_days ?? "",
-              maxDelivery: prod.max_delivery_days ?? ""
-            }).toString();
-    
-            const productUrl = `product.html?${qp}`;
-    
-            const card = document.createElement("div");
-            card.className = "product-card";
-            card.innerHTML = `
-              <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
-                <img src="${prod.image || 'default.png'}" alt="${prod.alt || prod.title}">
-                <h3>${prod.title}</h3>
-                <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
-                <i class="fas fa-shipping-fast"></i> ${deliveryText}
-              </a>
-            `;
-    
-            container.appendChild(card);
-          });
-          
-          // Show the section title only when products are successfully loaded
-          featuredSectionTitle.style.display = 'block';
-        }
-    
-      } catch (error) {
-        console.error("Error loading featured products:", error);
-        container.innerHTML = '<div style="text-align:center; padding:40px; grid-column: 1 / -1;"><i class="fas fa-exclamation-triangle fa-2x" style="color:#dc3545;"></i><p style="margin-top:15px;">Failed to load featured products. Please try again later.</p></div>';
-      }
+
+// Featured Products Loading
+async function loadFeaturedProducts() {
+  const container = document.getElementById("featuredContainer");
+
+  container.innerHTML =
+    '<div style="text-align:center; padding:40px; grid-column:1 / -1;">Loading featured products...</div>';
+
+  // Keywords paired with actual AliExpress category IDs
+  const featuredCategories = [
+    {
+      term: "Smart Glasses",
+      categoryId: "200003803"
+    },
+    {
+      term: "Smart Watch",
+      categoryId: "200003803"
+    },
+    {
+      term: "Laptops",
+      categoryId: "702"
+    },
+    {
+      term: "Earphones & Headphones",
+      categoryId: "100000306"
+    },
+    {
+      term: "Mobile Phones",
+      categoryId: "5090301"
     }
+  ];
+
+  try {
+    // Search each keyword within its corresponding AliExpress category
+    const responses = await Promise.all(
+      featuredCategories.map(async category => {
+        const params = new URLSearchParams({
+          q: category.term,
+          categoryId: category.categoryId
+        });
+
+        return fetch(`${API_BASE}/api/search?${params.toString()}`)
+          .then(res => (res.ok ? res.json() : null))
+          .catch(error => {
+            console.error(
+              `Featured search failed for ${category.term}:`,
+              error
+            );
+            return null;
+          });
+      })
+    );
+
+    const products = [];
+
+    for (const data of responses) {
+      if (!data || !Array.isArray(data.results)) continue;
+
+      // Filter out products with invalid images and delivery information
+      const valid = await Promise.all(
+        data.results.map(async p => {
+          const hasValidDelivery =
+            (p.min_delivery_days && p.min_delivery_days !== "N/A") ||
+            (p.max_delivery_days && p.max_delivery_days !== "N/A");
+
+          const isValidImageCheck = await isValidImage(p.image);
+
+          return (
+            p.title &&
+            p.price &&
+            hasValidDelivery &&
+            isValidImageCheck
+          );
+        })
+      );
+
+      // Keep only valid products
+      const validProducts = data.results
+        .filter((_, index) => valid[index])
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 2);
+
+      products.push(...validProducts);
+    }
+
+    if (products.length === 0) {
+      container.innerHTML =
+        '<div style="text-align:center; padding:40px; grid-column:1 / -1;"><i class="fas fa-exclamation-circle fa-2x" style="color:var(--gray);"></i><p style="margin-top:15px;">No featured products available at the moment.</p></div>';
+    } else {
+      container.innerHTML = "";
+
+      products.slice(0, 8).forEach(prod => {
+        const deliveryText =
+          prod.min_delivery_days && prod.max_delivery_days
+            ? `${prod.min_delivery_days}-${prod.max_delivery_days} Days`
+            : prod.min_delivery_days ||
+              prod.max_delivery_days ||
+              "N/A";
+
+        const qp = new URLSearchParams({
+          id: prod.id ?? "",
+          title: prod.title ?? "",
+          price: prod.price ?? "0",
+          shipping: prod.shipping_fee ?? "0",
+          image: prod.image ?? "",
+          skuId: prod.sku_id ?? "",
+          minDelivery: prod.min_delivery_days ?? "",
+          maxDelivery: prod.max_delivery_days ?? ""
+        }).toString();
+
+        const productUrl = `product.html?${qp}`;
+
+        const card = document.createElement("div");
+        card.className = "product-card";
+
+        card.innerHTML = `
+          <a href="${productUrl}" style="text-decoration:none;color:inherit;display:block;">
+            <img src="${prod.image || 'default.png'}" alt="${prod.alt || prod.title}">
+            <h3>${prod.title}</h3>
+            <p>$${parseFloat(prod.price || 0).toFixed(2)}</p>
+            <i class="fas fa-shipping-fast"></i> ${deliveryText}
+          </a>
+        `;
+
+        container.appendChild(card);
+      });
+
+      featuredSectionTitle.style.display = "block";
+    }
+
+  } catch (error) {
+    console.error("Error loading featured products:", error);
+
+    container.innerHTML =
+      '<div style="text-align:center; padding:40px; grid-column:1 / -1;"><i class="fas fa-exclamation-triangle fa-2x" style="color:#dc3545;"></i><p style="margin-top:15px;">Failed to load featured products. Please try again later.</p></div>';
+  }
+}
 
     // ===============================
     // Frontend Member Offerings Loader
