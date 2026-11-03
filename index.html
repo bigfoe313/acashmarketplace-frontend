@@ -1366,20 +1366,27 @@
     }
 
     // Search button click handler
-    searchBtn.addEventListener('click', () => {
+    searchBtn.addEventListener("click", () => {
       const searchTerm = searchInput.value.trim();
-      if (searchTerm) {
-        performSearch(searchTerm);
-      }
+    
+      // If no keyword was entered, use the selected category name
+      const finalSearchTerm = searchTerm || searchInput.placeholder
+        .replace("Search within ", "")
+        .replace("...", "");
+    
+      performSearch(finalSearchTerm, selectedCategoryId);
     });
 
     // Enter key handler for search input
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+    searchInput.addEventListener("keypress", e => {
+      if (e.key === "Enter") {
         const searchTerm = searchInput.value.trim();
-        if (searchTerm) {
-          performSearch(searchTerm);
-        }
+    
+        const finalSearchTerm = searchTerm || searchInput.placeholder
+          .replace("Search within ", "")
+          .replace("...", "");
+    
+        performSearch(finalSearchTerm, selectedCategoryId);
       }
     });
 
