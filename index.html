@@ -791,6 +791,20 @@
       object-fit: contain;     /* Shows full image without cropping */
       background-color: #fff;  /* Clean background for empty space */
     }
+
+    #categorySelector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    
+    #categoryLabel {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+    }  
     
   </style>
 </head>
@@ -834,8 +848,11 @@
   <section class="container">
     <div class="search-section">
       <div class="search-box">
-        <div id="categoryIcon">
-          <img src="https://ae-pic-a1.aliexpress-media.com/kf/Sa976459fb7724bf1bca6e153a425a8ebg.png" alt="All Categories">
+        <div id="categorySelector">
+          <div id="categoryIcon">
+            <img src="https://ae-pic-a1.aliexpress-media.com/kf/Sa976459fb7724bf1bca6e153a425a8ebg.png" alt="All Categories">
+          </div>
+          <span id="categoryLabel">Select a Category</span>
         </div>
   
         <input
