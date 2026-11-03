@@ -1167,24 +1167,28 @@
               subcategoryItem.className = "subcategory-item";
               subcategoryItem.textContent = subcategory.name;
     
+
               subcategoryItem.addEventListener("click", e => {
                 e.stopPropagation();
-    
+              
                 // Save the actual AliExpress category ID
                 selectedCategoryId = subcategory.id;
-    
-                searchInput.value = subcategory.name;
-    
+              
+                // Clear the search box so buyer can enter keywords
+                searchInput.value = "";
+              
+                // Update placeholder to show selected category
+                searchInput.placeholder = `Search within ${subcategory.name}...`;
+              
+                // Close category dropdown
                 categoryDropdown.classList.remove("show");
-    
+              
+                // Remove active class from all major categories
                 document.querySelectorAll(".category-item").forEach(item => {
                   item.classList.remove("active");
                 });
-    
-                // Search using the selected category ID
-                performSearch(subcategory.name, selectedCategoryId);
               });
-    
+
               subcategoryList.appendChild(subcategoryItem);
             });
     
