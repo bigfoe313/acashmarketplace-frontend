@@ -1096,7 +1096,7 @@
     // Build the category dropdown from AliExpress category data
     async function initCategoryDropdown() {
       try {
-        const response = await fetch(`${API_BASE}/api/categories`);
+        const response = await fetch("./categories.json");
     
         if (!response.ok) {
           throw new Error("Unable to load AliExpress categories");
